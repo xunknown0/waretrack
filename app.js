@@ -1,5 +1,7 @@
 const createError = require('http-errors');
 const express = require('express');
+
+const engine = require('ejs-mate');
 const session = require('express-session');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -10,25 +12,29 @@ const mongoose = require('mongoose');
 
 
 
-const indexRouter = require('./routes/index');
-const productsRouter = require('./routes/products');
+const dashboardRoutes = require('./routes/dashboard');
+const productRoutes = require('./routes/products');
 
 const app = express();
 
 //Connect Database
-
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/waretrack-db')
   .then(() => console.log('Database connected!'))
   .catch(err => console.error('Database connection error:', err));
+
+// use ejs-locals for all ejs templates:
+app.engine('ejs', engine);
 
 
 // view engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+
+
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 //Body-Parser
@@ -43,26 +49,23 @@ app.use(session({
   secret: 'keyboard Warrior',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: true }
-}))
+  cookie: { secure: false } // <-- use false for local dev
+}));
 
-app.use('/', indexRouter);
-app.use('/products', productsRouter);
+app.use('/', dashboardRoutes);        // Dashboard routes
+app.use('/products', productRoutes);  // Product routes
+// app.use('/customers', customerRoutes); // add if you have customer routes
 
-// catch 404 and forward to error handler
+// catch 404
 app.use(function(req, res, next) {
-  next(createError(404));
+  res.status(404).render('error', { message: 'Page Not Found', error: {} });
 });
 
 // error handler
 app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.render('error', { message: err.message, error: err });
 });
+
 
 module.exports = app;

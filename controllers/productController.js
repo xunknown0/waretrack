@@ -49,16 +49,58 @@ module.exports = {
     }
   },
   async productShow(req, res, next) {
+    try {
+      const { id } = req.params;
+      const product = await Product.findById(id);
+      if (!product) {
+        return res.redirect("/products");
+      }
+      res.render("products/show", { product, title: product.title });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+ async productEdit(req, res, next) {
   try {
-    const { id } = req.params; // MongoDB ObjectId
+    const { id } = req.params;
     const product = await Product.findById(id);
     if (!product) {
-      return res.status(404).send("Product not found");
+      return res.redirect('/products');
     }
-    res.render("products/show", { product });
+    res.render('products/edit', { product, title: `Edit ${product.title}` });
   } catch (err) {
     next(err);
   }
-}
+},
+async productUpdate(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { title, description, price, stock } = req.body;
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { title, description, price, stock },
+      { new: true, runValidators: true }
+    );
+    if (!updatedProduct) {
+      return res.redirect('/products'); // fallback if product not found
+    }
+    res.redirect(`/products/${updatedProduct._id}`);
+  } catch (err) {
+    next(err);
+  }
+},
 
+  async productDelete(req,res,next){
+    try{
+      const {id } = req.params;
+      const deleteProduct = await Product.findByIdAndDelete(id);
+      if(!deleteProduct){
+        return res.redirect('/products');
+      }
+      res.redirect('/products');
+    }catch(err){
+      next(err);
+    }
+  }
 };

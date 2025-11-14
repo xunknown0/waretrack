@@ -1,0 +1,10 @@
+<% layout('layouts/boilerplate') -%>
+
+<%- include('partials/content', { 
+  products: products || [],
+  totalProducts,
+  totalSales,
+  totalStock,
+  currentPage,
+  totalPages
+}) %>

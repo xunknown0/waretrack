@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { asyncErrorHandler } = require('../middleware/errorHander');
+const { asyncErrorHandler } = require('../middleware/errorHandler');
 const {
   productIndex,
   productNew,
   productCreate,
   productShow,
+  productEdit,
+  productUpdate,
+  productDelete,
 } = require('../controllers/productController');
 
 /* GET products Index. */
@@ -20,20 +23,15 @@ router.post("/", asyncErrorHandler(productCreate));
 /*GET products Show */
 
 router.get('/:id', asyncErrorHandler(productShow));
+
 /*GET products Edit */
-router.get("/products/:id/edit", (req, res, next) => {
-  res.send("/products/:id/edit");
-});
+router.get("/:id/edit", asyncErrorHandler(productEdit));
 
 /*PUT products Update */
-router.put("/products/:id", (req, res, next) => {
-  res.send("/products/:id");
-});
+router.put("/:id", asyncErrorHandler(productUpdate));
 
 /*Delete products Destroy */
-router.delete("/products/:id", (req, res, next) => {
-  res.send("/products/:id");
-});
+router.delete("/:id", asyncErrorHandler(productDelete));
 
 
 module.exports = router;
