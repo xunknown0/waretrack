@@ -1,106 +1,115 @@
-const Product = require("../models/productModel"); // adjust path if needed
+const Product = require("../models/productModel");
+const Category = require("../models/categoryModel"); // Make sure you have a Category model
+const fs = require('fs');
+const path = require('path');
 
 module.exports = {
-  //Get Display All Products
+
+  // Display all products
   async productIndex(req, res, next) {
     try {
       const page = parseInt(req.query.page) || 1;
-      const limit = 5;
+      const limit = 10;
       const skip = (page - 1) * limit;
+      const search = req.query.search || "";
+      const date = req.query.date || "";
 
-      const totalProducts = await Product.countDocuments({});
-      const products = await Product.find({}).skip(skip).limit(limit);
+      let query = {};
+
+      // Search filter
+      if(search){
+        const keyword = search.toLowerCase();
+        if(keyword === "low") query.stock = { $gt:0, $lt:20 };
+        else if(keyword === "out") query.stock = 0;
+        else if(keyword === "available") query.stock = { $gt:0 };
+        else query.$or = [
+          { title: { $regex: search, $options:"i" } },
+          { description: { $regex: search, $options:"i" } }
+        ];
+      }
+
+      // Date filter
+      if(date){
+        const start = new Date(date); start.setHours(0,0,0,0);
+        const end = new Date(date); end.setHours(23,59,59,999);
+        query.createdAt = { $gte: start, $lte: end };
+      }
+
+      const totalProducts = await Product.countDocuments(query);
+      const products = await Product.find(query)
+        .populate('category') // dynamically populate category
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
 
       const totalPages = Math.ceil(totalProducts / limit);
+      const categories = await Category.find(); // fetch all categories
 
       res.render("products/index", {
         products,
-        title: "Product Inventory",
+        categories,
         currentPage: page,
         totalPages,
+        search,
+        date,
+        title: "Product Inventory"
       });
-    } catch (err) {
+
+    } catch(err) {
       next(err);
     }
   },
-  //Get New Product (Create);
-  async productNew(req, res, next) {
-    res.render("products/new", {
-      title: "Add New Product",
-      errors: null,
-      product: {},
-    });
-  },
 
-  async productCreate(req, res, next) {
+  // Create product
+  async productCreate(req, res, next){
     try {
-      const product = new Product(req.body);
+      const { title, category, stock, price, description } = req.body;
+      let image = null;
+
+      // Store image in DB
+      if(req.file){
+        image = {
+          data: fs.readFileSync(path.join(__dirname,'../public/uploads/'+req.file.filename)),
+          contentType: req.file.mimetype
+        };
+      }
+
+      const product = new Product({ title, category, stock, price, description, image });
       await product.save();
-      res.redirect("/products");
-    } catch (err) {
-      if (err.name === "ValidationError") {
-        return res.render("products/new", {
-          title: "Add New Product",
-          errors: err.errors,
-          product: req.body,
-        });
-      }
-      next(err);
-    }
-  },
-  async productShow(req, res, next) {
-    try {
-      const { id } = req.params;
-      const product = await Product.findById(id);
-      if (!product) {
-        return res.redirect("/products");
-      }
-      res.render("products/show", { product, title: product.title });
-    } catch (err) {
-      next(err);
-    }
-  },
-
- async productEdit(req, res, next) {
-  try {
-    const { id } = req.params;
-    const product = await Product.findById(id);
-    if (!product) {
-      return res.redirect('/products');
-    }
-    res.render('products/edit', { product, title: `Edit ${product.title}` });
-  } catch (err) {
-    next(err);
-  }
-},
-async productUpdate(req, res, next) {
-  try {
-    const { id } = req.params;
-    const { title, description, price, stock } = req.body;
-    const updatedProduct = await Product.findByIdAndUpdate(
-      id,
-      { title, description, price, stock },
-      { new: true, runValidators: true }
-    );
-    if (!updatedProduct) {
-      return res.redirect('/products'); // fallback if product not found
-    }
-    res.redirect(`/products/${updatedProduct._id}`);
-  } catch (err) {
-    next(err);
-  }
-},
-
-  async productDelete(req,res,next){
-    try{
-      const {id } = req.params;
-      const deleteProduct = await Product.findByIdAndDelete(id);
-      if(!deleteProduct){
-        return res.redirect('/products');
-      }
       res.redirect('/products');
-    }catch(err){
+    } catch(err){
+      next(err);
+    }
+  },
+
+  // Update product
+  async productUpdate(req, res, next){
+    try {
+      const { title, category, stock, price, description } = req.body;
+      let updateData = { title, category, stock, price, description };
+
+      if(req.file){
+        updateData.image = {
+          data: fs.readFileSync(path.join(__dirname,'../public/uploads/'+req.file.filename)),
+          contentType: req.file.mimetype
+        };
+      }
+
+      await Product.findByIdAndUpdate(req.params.id, updateData, { new:true, runValidators:true });
+      res.redirect('/products');
+    } catch(err){
+      next(err);
+    }
+  },
+
+  // Delete product
+  async productDelete(req,res,next){
+    try {
+      await Product.findByIdAndDelete(req.params.id);
+      res.redirect('/products');
+    } catch(err){
       next(err);
     }
   }
+
 };

@@ -1,21 +1,11 @@
 /*!
-    * Start Bootstrap - SB Admin v7.0.7 (https://startbootstrap.com/template/sb-admin)
-    * Copyright 2013-2023 Start Bootstrap
-    * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-sb-admin/blob/master/LICENSE)
-    */
-    // 
-// Scripts
-// 
+ * Start Bootstrap - SB Admin v7.0.7
+ */
 
+// Sidebar toggle
 window.addEventListener('DOMContentLoaded', event => {
-
-    // Toggle the side navigation
     const sidebarToggle = document.body.querySelector('#sidebarToggle');
     if (sidebarToggle) {
-        // Uncomment Below to persist sidebar toggle between refreshes
-        // if (localStorage.getItem('sb|sidebar-toggle') === 'true') {
-        //     document.body.classList.toggle('sb-sidenav-toggled');
-        // }
         sidebarToggle.addEventListener('click', event => {
             event.preventDefault();
             document.body.classList.toggle('sb-sidenav-toggled');
@@ -23,25 +13,40 @@ window.addEventListener('DOMContentLoaded', event => {
         });
     }
 
+    // Confirm delete
+    document.querySelectorAll('.deleteProductForm').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to delete this product?')) {
+                form.submit();
+            }
+        });
+    });
 });
 
-function updateDateTime() {
-    const now = new Date();
-    const options = { 
-        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: '2-digit'
-    };
-    document.getElementById('dateTimeDisplay').innerHTML = now.toLocaleString('en-US', options);
+function previewImage(event, previewId){
+  const reader = new FileReader();
+  const preview = document.getElementById(previewId);
+  reader.onload = function(){
+    preview.src = reader.result;
+    preview.style.display = 'block';
+  }
+  reader.readAsDataURL(event.target.files[0]);
 }
 
-// Update every second
-setInterval(updateDateTime, 1000);
-updateDateTime();
 
-
-
-
-
-
-
-    
+  function previewImage(event, previewId) {
+    const input = event.target;
+    const preview = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      }
+      reader.readAsDataURL(input.files[0]);
+    } else {
+      preview.src = '';
+      preview.style.display = 'none';
+    }
+  }

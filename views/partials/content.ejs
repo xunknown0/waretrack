@@ -11,15 +11,6 @@
           performance
         </p>
       </div>
-      <div>
-        <button
-          class="btn btn-primary"
-          data-bs-toggle="modal"
-          data-bs-target="#addProductModal"
-        >
-          <i class="fa fa-plus-circle me-1"></i> Add Product
-        </button>
-      </div>
     </div>
 
     <!-- Dashboard Cards -->
@@ -28,6 +19,7 @@
       'fa-box', bg: 'bg-primary'}, {title: 'Total Sales', value:
       `₱${totalSales}`, icon: 'fa-chart-line', bg: 'bg-warning'},       {title: 'Stock', value: totalStock, icon: 'fa-cubes', bg: 'bg-danger'} ];
       %> <% stats.forEach(stat => { %>
+        
       <div class="col-xl-3 col-md-6">
         <div class="card shadow-sm rounded-4 text-white <%= stat.bg %>">
           <div
@@ -45,39 +37,47 @@
     </div>
 <!-- Tables -->
 <div class="row mt-2">
-  <!-- Orders Table -->
-  <div class="col-lg-6 mb-2">
-    <div class="card shadow-sm rounded-3">
+  <!-- Transactions Table -->
+  <div class="col-lg-5 mb-2">
+    <div class="card shadow-sm rounded-3" style="font-family: 'Times New Roman', serif; font-size: 0.85rem;">
+
+      <!-- Card Header -->
       <div class="card-header fw-bold text-secondary bg-white small py-1 text-center">
-        <i class="fa fa-shopping-cart me-1"></i> Orders
+        Transactions
       </div>
+
+      <!-- Card Body / Table -->
       <div class="card-body p-0">
         <table class="table table-hover table-sm align-middle mb-0 small text-center">
           <thead class="table-light fs-7">
             <tr>
-              <th>Order ID</th>
+              <th>Transaction ID</th>
               <th>Customer</th>
               <th>Status</th>
               <th>Total</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td colspan="5" class="text-center text-muted small">No orders found.</td>
+              <td colspan="4" class="text-center text-muted small">No transactions found.</td>
             </tr>
           </tbody>
         </table>
       </div>
+
     </div>
   </div>
 
   <!-- Product Table -->
-  <div class="col-lg-6 mb-2">
-    <div class="card shadow-sm rounded-3">
+  <div class="col-lg-7 mb-2">
+    <div class="card shadow-md rounded-6" style="font-family: 'Times New Roman', serif; font-size: 0.85rem;">
+
+      <!-- Card Header -->
       <div class="card-header fw-bold text-secondary bg-white small py-2 text-center">
-        <i class="fa fa-boxes me-1"></i> Product Details
+        Product Details
       </div>
+
+      <!-- Card Body / Table -->
       <div class="card-body p-0">
         <table class="table table-hover table-sm table-striped align-middle mb-0 small text-center">
           <thead class="table-light fs-7">
@@ -140,7 +140,10 @@
             </ul>
           </nav>
         </div>
-
+      </div>
+    </div>
+  </div>
+</div>
       </div>
     </div>
   </div>

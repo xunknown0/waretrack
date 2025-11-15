@@ -6,7 +6,7 @@ const Product = require('../models/productModel'); // your Product model
 router.get('/', async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 5;
+    const limit = 10;
 
     const totalProducts = await Product.countDocuments();
     const totalSales = 0; // Replace with real sales

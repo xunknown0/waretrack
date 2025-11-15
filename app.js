@@ -1,6 +1,5 @@
 const createError = require('http-errors');
 const express = require('express');
-
 const engine = require('ejs-mate');
 const session = require('express-session');
 const path = require('path');
@@ -9,11 +8,11 @@ const logger = require('morgan');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 const mongoose = require('mongoose');
-
-
+const multer = require('multer');
 
 const dashboardRoutes = require('./routes/dashboard');
 const productRoutes = require('./routes/products');
+
 
 const app = express();
 
@@ -25,12 +24,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/waretrack
 // use ejs-locals for all ejs templates:
 app.engine('ejs', engine);
 
-
 // view engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
-
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -49,12 +45,11 @@ app.use(session({
   secret: 'keyboard Warrior',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // <-- use false for local dev
+  cookie: { secure: false } 
 }));
 
 app.use('/', dashboardRoutes);        // Dashboard routes
 app.use('/products', productRoutes);  // Product routes
-// app.use('/customers', customerRoutes); // add if you have customer routes
 
 // catch 404
 app.use(function(req, res, next) {
@@ -66,6 +61,5 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error', { message: err.message, error: err });
 });
-
 
 module.exports = app;

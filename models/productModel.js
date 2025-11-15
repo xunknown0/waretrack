@@ -5,18 +5,22 @@ const ProductSchema = new Schema({
     title: { type: String, required: true },
     price: { type: Number, required: true },
     description: { type: String, required: true },
-    images:[{url: String , public_id: String}],
+    category: { type: String }, // <-- store category as string
     sku: { type: String, unique: true },
-    stock: { type: Number, default: 0 }
+    stock: { type: Number, default: 0 },
+    image: {
+        data: Buffer,
+        contentType: String
+    },
 }, { timestamps: true });
 
 // Pre-save hook to generate SKU if not provided
 ProductSchema.pre('save', function (next) {
-  if (!this.sku) {
-    const titlePart = this.title.replace(/\s+/g, '').substring(0, 3).toUpperCase();
-    const timestamp = Date.now().toString().slice(-5);
-    this.sku = `${titlePart}-${timestamp}`;
-  }
+    if (!this.sku) {
+        const titlePart = this.title.replace(/\s+/g, '').substring(0, 3).toUpperCase();
+        const timestamp = Date.now().toString().slice(-5);
+        this.sku = `${titlePart}-${timestamp}`;
+    }
     next();
 });
 
