@@ -11276,19 +11276,52 @@ body {
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
-body {
-      font-family: 'Arial', 'Helvetica', sans-serif;
-      font-size: 0.85rem;
+
+  /* Slide-in from right animation */
+  .toast.slide-in {
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform 0.5s ease, opacity 0.5s ease;
   }
-  h1, h2, h3, .card-header {
-      font-family: 'Verdana', sans-serif;
-      font-weight: bold;
+  .toast.show.slide-in {
+    transform: translateX(0);
+    opacity: 1;
   }
-  table, .card {
-      font-family: 'Arial', sans-serif;
-      font-size: 0.85rem;
+
+    .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
   }
-  .btn, input, select, textarea {
-      font-family: 'Arial', sans-serif;
-      font-size: 0.85rem;
+
+  .action-btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+
+    .full-justify-table th,
+  .full-justify-table td {
+    text-align: justify;
+    vertical-align: middle;
+    hyphens: auto; /* For long words */
+  }
+
+   /* Justify all text in table */
+  .full-justify-table th,
+  .full-justify-table td {
+    text-align: justify;
+    vertical-align: middle;
+    hyphens: auto;
+    word-break: break-word;
+  }
+
+  /* Keep numeric/short columns centered for readability */
+  .full-justify-table td:nth-child(1),
+  .full-justify-table td:nth-child(2),
+  .full-justify-table td:nth-child(5),
+  .full-justify-table td:nth-child(6),
+  .full-justify-table td:nth-child(7),
+  .full-justify-table td:nth-child(8) {
+    text-align: center;
   }

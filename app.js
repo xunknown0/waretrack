@@ -9,6 +9,7 @@ const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const flash = require("connect-flash");
 
 const dashboardRoutes = require('./routes/dashboard');
 const productRoutes = require('./routes/products');
@@ -40,16 +41,26 @@ app.use(bodyParser.urlencoded({ extended: false }));
 //Method-Override
 app.use(methodOverride('_method'));
 
-//Express Session
-app.use(session({
-  secret: 'keyboard Warrior',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false } 
-}));
+app.use(
+  session({
+    secret: "Tiktoktalk", // change to something secure
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 
+app.use(flash());
+
+// Make flash messages available in all EJS views
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash("success");
+  res.locals.error_msg = req.flash("error");
+  next();
+});
 app.use('/', dashboardRoutes);        // Dashboard routes
 app.use('/products', productRoutes);  // Product routes
+
+
 
 // catch 404
 app.use(function(req, res, next) {
