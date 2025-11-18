@@ -27,8 +27,8 @@ productSchema.index(
 // === Pre-save hook to generate SKU ===
 productSchema.pre("save", function (next) {
   if (!this.sku) {
-    const titlePart = this.title.replace(/\s+/g, "").substring(0, 4).toUpperCase();
-    const timestamp = Date.now().toString().slice(-8);
+    const titlePart = this.title.replace(/\s+/g, "").substring(0, 3).toUpperCase();
+    const timestamp = Date.now().toString().slice(-5);
     this.sku = `${titlePart}-${timestamp}`;
   }
   next();

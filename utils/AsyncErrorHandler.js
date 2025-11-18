@@ -1,8 +1,6 @@
-// In your error handler file (e.g., utils/asyncErrorHandler.js)
-
-const asyncErrorHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
+// utils/AsyncErrorHandler.js
+module.exports = function asyncErrorHandler(fn) {
+  return function(req, res, next) {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
 };
-
-// **Crucial Step: Export the function**
-module.exports = asyncErrorHandler;

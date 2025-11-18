@@ -1,0 +1,195 @@
+<% layout('layouts/boilerplate') -%>
+
+<div class="container my-5">
+  <h1 class="mb-4 text-center fw-bold text-primary">
+    <i class="fa fa-sitemap me-2"></i> <%= title %>
+  </h1>
+
+  <!-- Add Category Button -->
+  <div class="mb-4 text-center">
+    <button type="button" class="btn btn-success btn-lg shadow px-4"
+      data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+      <i class="fa fa-plus-circle me-2"></i> Add New Category
+    </button>
+  </div>
+
+  <!-- Category Table -->
+  <div class="card shadow border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover table-striped align-middle mb-0">
+          <thead class="bg-dark text-white text-center">
+            <tr>
+              <th class="ps-4 text-start" style="width: 55%;">Category Name (Hierarchy)</th>
+              <th style="width: 20%;">Subcategories</th>
+              <th style="width: 25%;">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% function renderCategoryRows(cats, level = 0) { cats.forEach(cat => { %>
+              <tr class="align-middle">
+                <td style="padding-left: <%= 20 + (level * 25) %>px;">
+                  <span class="<%= level === 0 ? 'fw-bold text-dark' : 'text-secondary' %>">
+                    <i class="fa <%= cat.icon || 'fa-folder' %> me-2"></i>
+                    <%= cat.name %>
+                  </span>
+                </td>
+
+                <td class="text-center">
+                  <% if (cat.children.length > 0) { %>
+                    <span class="badge bg-primary px-3"><%= cat.children.length %></span>
+                  <% } else { %>
+                    <span class="text-muted">0</span>
+                  <% } %>
+                </td>
+
+                <td class="text-center">
+                  <div class="d-flex justify-content-center gap-2">
+
+                    <!-- EDIT -->
+                    <button type="button" class="btn btn-sm btn-outline-primary px-3"
+                      data-bs-toggle="modal" data-bs-target="#editCategoryModal"
+                      data-id="<%= cat._id %>" 
+                      data-name="<%= cat.name %>" 
+                      data-parent="<%= cat.parent || '' %>"
+                      data-icon="<%= cat.icon || 'fa-folder' %>">
+                      <i class="fa fa-edit me-1"></i> Edit
+                    </button>
+
+                    <!-- DELETE -->
+                    <form action="/categories/<%= cat._id %>?_method=DELETE" method="POST">
+                      <button type="submit" class="btn btn-sm btn-outline-danger px-3"
+                        onclick="return confirm('⚠ Delete <%= cat.name %>? This will remove all subcategories and may affect products!');">
+                        <i class="fa fa-trash me-1"></i> Delete
+                      </button>
+                    </form>
+
+                  </div>
+                </td>
+              </tr>
+
+              <% if (cat.children && cat.children.length > 0) { %>
+                <%= renderCategoryRows(cat.children, level + 1) %>
+              <% } %>
+            <% }) } %>
+
+            <% if (categories.length > 0) { %>
+              <%= renderCategoryRows(categories) %>
+            <% } else { %>
+              <tr>
+                <td colspan="3" class="text-center text-muted py-3">
+                  No categories found. Click <strong>"Add New Category"</strong> to create your first one.
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content shadow">
+      <form action="/categories" method="POST">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title"><i class="fa fa-plus-circle me-2"></i> Add New Category</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <label class="form-label fw-semibold">Category Name</label>
+          <input type="text" name="name" class="form-control mb-3" required placeholder="e.g. Electronics, Clothing">
+
+          <label class="form-label fw-semibold">Parent Category</label>
+          <select name="parent" class="form-select mb-3">
+            <option value="">-- Select Parent Category --</option>
+            <% function renderDropdown(cats, prefix = '') { cats.forEach(cat => { %>
+              <option value="<%= cat._id %>"><%= prefix + cat.name %></option>
+              <% if (cat.children.length > 0) { %>
+                <%= renderDropdown(cat.children, prefix + ' > ') %>
+              <% } %>
+            <% }) } %>
+            <%= renderDropdown(categories) %>
+          </select>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success px-4">Add Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content shadow">
+      <form id="editCategoryForm" method="POST">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title"><i class="fa fa-edit me-2"></i> Edit Category</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <input type="hidden" name="_method" value="PUT">
+
+          <label class="form-label fw-semibold">Category Name</label>
+          <input type="text" name="name" id="editCategoryName" class="form-control mb-3" required>
+
+          <label class="form-label fw-semibold">Parent Category</label>
+          <select name="parent" id="editParentCategory" class="form-select mb-3">
+            <option value="">-- Select Parent Category --</option>
+  <% function renderDropdown(cats, level = 0) { 
+     cats.forEach(cat => { %>
+  <option value="<%= cat._id %>">
+      <% for(let i = 0; i < level; i++) { %>&nbsp;&nbsp;&nbsp;&nbsp;<% } %>
+      <%= cat.icon === 'fa-tshirt' ? '👕' : '📁' %> <%= cat.name %>
+  </option>
+  <% if (cat.children && cat.children.length > 0) { %>
+      <% renderDropdown(cat.children, level + 1) %>
+  <% } %>
+<% }) } %>
+
+<%= renderDropdown(categories) %>
+
+          </select>
+
+          <label class="form-label fw-semibold">Category Icon</label>
+          <select name="icon" id="editCategoryIcon" class="form-select">
+            <option value="fa-folder">Folder</option>
+            <option value="fa-laptop">Laptop</option>
+            <option value="fa-tshirt">T-Shirt</option>
+            <option value="fa-tags">Tags</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning px-4">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Populate edit modal with current values
+  document.getElementById('editCategoryModal').addEventListener('show.bs.modal', function(event) {
+    let btn = event.relatedTarget;
+    let id = btn.getAttribute('data-id');
+    let name = btn.getAttribute('data-name');
+    let parent = btn.getAttribute('data-parent');
+    let icon = btn.getAttribute('data-icon');
+
+    let form = document.getElementById('editCategoryForm');
+    form.action = `/categories/${id}?_method=PUT`;
+
+    document.getElementById('editCategoryName').value = name;
+    document.getElementById('editParentCategory').value = parent || '';
+    document.getElementById('editCategoryIcon').value = icon || 'fa-folder';
+  });
+</script>

@@ -91,18 +91,18 @@ function confirmDelete(url){
   deleteModal.show();
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl);
+  function previewImage(event, previewId) {
+    const output = document.getElementById(previewId);
+    output.src = URL.createObjectURL(event.target.files[0]);
+    output.style.display = 'block';
+  }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const editModal = document.getElementById("editCategoryModal");
+    editModal.addEventListener("show.bs.modal", event => {
+        const button = event.relatedTarget;
+        document.getElementById("editCatId").value = button.getAttribute("data-id");
+        document.getElementById("editCatName").value = button.getAttribute("data-name");
+        document.getElementById("editParentCategory").value = button.getAttribute("data-parent");
     });
-  });
-
-document.addEventListener("DOMContentLoaded", function () {
-  var toastElList = [].slice.call(document.querySelectorAll('.toast'));
-  toastElList.forEach(function (toastEl) {
-    var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
-    toast.show();
-  });
 });
-

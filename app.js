@@ -13,6 +13,7 @@ const flash = require("connect-flash");
 
 const dashboardRoutes = require('./routes/dashboard');
 const productRoutes = require('./routes/products');
+const categoriesRoutes = require('./routes/category');
 
 
 const app = express();
@@ -59,6 +60,8 @@ app.use((req, res, next) => {
 });
 app.use('/', dashboardRoutes);        // Dashboard routes
 app.use('/products', productRoutes);  // Product routes
+app.use('/categories', categoriesRoutes);
+
 
 
 

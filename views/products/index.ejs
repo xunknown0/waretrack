@@ -1,237 +1,309 @@
-          <% layout('layouts/boilerplate') -%>
+<% layout('layouts/boilerplate') -%>
 
-          <div class="container-fluid px-4 mt-4">
-            <!-- Header -->
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <h1 class="fw-bold text-dark mb-0 display-6"><i class="fa fa-box me-2"></i> Products</h1>
-            
-            <div class="d-flex gap-2 flex-wrap">
-              <!-- Search & Filter -->
-              <form class="d-flex gap-2" method="GET" action="/products">
-                <input type="search" class="form-control form-control-lg" placeholder="Search..." name="search" value="<%= search %>">
-                <input type="date" class="form-control form-control-lg" name="date" value="<%= date %>">
-                <button class="btn btn-lg btn-primary"><i class="fa fa-search"></i> Search</button>
-                <a href="/products" class="btn btn-lg btn-secondary"><i class="fa fa-sync-alt"></i> Reset</a>
-              </form>
-              
-              <!-- Add Product -->
-              <button class="btn btn-lg btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                <i class="fa fa-plus-circle me-1"></i> Add Product
-              </button>
-            </div>
-          </div>
+<div class="container-fluid px-4 mt-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <h2 class="fw-bold text-dark mb-0 fs-3">
+      <i class="fa fa-box me-2 text-secondary"></i> Inventory Product
+    </h2>
 
+    <div class="d-flex gap-3 flex-wrap">
+      <form class="d-flex gap-2" method="GET" action="/products">
+        <input type="search" class="form-control" placeholder="Search products..." name="search" value="<%= search %>" style="width: 200px;">
+        <input type="date" class="form-control" name="date" value="<%= date %>" style="width: 150px;">
+        <button class="btn btn-outline-secondary"><i class="fa fa-search"></i></button>
+        <a href="/products" class="btn btn-outline-secondary" title="Reset Filters"><i class="fa fa-sync-alt"></i></a>
+      </form>
 
-            <!-- Products Table -->
-            <div class="table-responsive shadow-sm rounded-4 overflow-hidden">
-              <table class="table table-hover align-middle text-center mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>#</th>
-                    <th>SKU</th>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Stock</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% if(products.length){ %>
-                    <% products.forEach((p,i)=>{ %>
-                      <tr>
-                        <td><%= (currentPage-1)*10 + i +1 %></td>
-                        <td><%= p.sku %></td>
-                        <td><%= p.title %></td>
-                        <td><%= p.category ? p.category.name : '-' %></td>
-                        <td><%= p.stock %></td>
-                        <td>₱<%= Number(p.price).toLocaleString() %></td>
-                        <td class="<%= p.stock<=0?'text-danger':p.stock<=5?'text-warning':'text-success' %>">
-                          <%= p.stock<=0?'Out of Stock':p.stock<=5?'Low':'In Stock' %>
-                        </td>
-                        <td>
-                          <div class="d-flex justify-content-center gap-1">
-                            <!-- View Button -->
-                            <button class="btn btn-success btn-sm" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#viewProductModal-<%= p._id %>" 
-                                    title="View">
-                              <i class="fa fa-eye"></i> View
-                            </button>
+      <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+        <i class="fa fa-plus-circle me-1"></i> Add New Product
+      </button>
+    </div>
+  </div>
 
-                            <!-- Edit Button -->
-                            <button class="btn btn-primary btn-sm" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#editProductModal-<%= p._id %>" 
-                                    title="Edit">
-                              <i class="fa fa-edit"></i> Edit
-                            </button>
-                            <!-- Delete Button -->
-                            <button class="btn btn-danger btn-sm" 
-                                    onclick="confirmDelete('/products/<%= p._id %>?_method=DELETE')" 
-                                    title="Delete">
-                              <i class="fa fa-trash"></i> Delete
-                            </button>
+  <!-- Products Table -->
+  <div class="table-responsive shadow-sm rounded-4 overflow-hidden">
+    <table class="table table-hover align-middle text-center mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>SKU</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Stock</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if(products.length){ %>
+          <% products.forEach((p,i)=>{ %>
+            <tr>
+              <td><%= (currentPage-1)*10 + i + 1 %></td>
+              <td><%= p.sku %></td>
+              <td><%= p.title %></td>
+<td><%= p.categoryName || '-' %></td>
+
+              <td><%= p.stock %></td>
+              <td>₱<%= Number(p.price).toLocaleString() %></td>
+              <td class="<%= p.stock<=0?'text-danger':p.stock<=5?'text-warning':'text-success' %>">
+                <%= p.stock<=0?'Out of Stock':p.stock<=5?'Low':'In Stock' %>
+              </td>
+              <td>
+                <div class="d-flex justify-content-center gap-1">
+                  <!-- View Button -->
+                  <button class="btn btn-secondary btn-sm" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#viewProductModal-<%= p._id %>" 
+                          title="View">
+                    <i class="fa fa-eye"></i> View
+                  </button>
+
+                  <!-- Edit Button -->
+                  <button class="btn btn-secondary btn-sm" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#editProductModal-<%= p._id %>" 
+                          title="Edit">
+                    <i class="fa fa-edit"></i> Edit
+                  </button>
+
+                  <!-- Delete Button -->
+                  <button class="btn btn-secondary btn-sm" 
+                          onclick="confirmDelete('/products/<%= p._id %>?_method=DELETE')" 
+                          title="Delete">
+                    <i class="fa fa-trash"></i> Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- View Product Modal -->
+            <div class="modal fade" id="viewProductModal-<%= p._id %>" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-lg modal-dialog-centered"> 
+                <div class="modal-content rounded-4 border-0 shadow-lg"> 
+                  <div class="modal-header bg-secondary text-white rounded-top-4 px-4 py-3">
+                    <h5 class="modal-title fw-bold">
+                      <i class="fa fa-chart-simple me-2"></i> Product Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body p-4">
+                    <div class="row g-4 mb-4">
+                      <div class="col-12">
+                        <h3 class="fw-bolder text-dark mb-0"><%= p.title %></h3>
+                        <p class="text-muted small">ID: <%= p._id %></p>
+                      </div>
+                      <div class="col-md-4">
+                        <% if(p.image && p.image.data){ %>
+                          <div class="rounded-3 overflow-hidden border">
+                            <img src="data:<%= p.image.contentType %>;base64,<%= p.image.data.toString('base64') %>"
+                              class="img-fluid w-100"
+                              style="height: 180px; object-fit:cover;"
+                              alt="<%= p.title %> image">
                           </div>
-                        </td>
-                      </tr>
-                              <!-- View Product Modal -->
-                  <div class="modal fade" id="viewProductModal-<%= p._id %>" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-md modal-dialog-centered">
-                      <div class="modal-content rounded-4 shadow-lg"> <!-- White background added here -->
-
-                        <!-- Modal Header -->
-                        <div class="modal-header bg-primary text-white rounded-top-4 py-3">
-                          <h5 class="modal-title fw-bold">
-                            <i class="fa fa-box me-4"></i> <%= p.title %>
-                          </h5>
-                          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                        </div>
-
-                        <!-- Modal Body -->
-                        <div class="modal-body px-4 py-4">
-                          <div class="row g-4 align-items-start">
-                            <!-- Product Image -->
-                            <% if(p.image && p.image.data){ %>
-                              <div class="col-md-5 text-center">
-                                <img src="data:<%= p.image.contentType %>;base64,<%= p.image.data.toString('base64') %>"
-                                    class="img-fluid rounded-4 border shadow-sm mb-3 mb-md-0"
-                                    style="max-height:250px; width:100%; object-fit:cover;">
-                              </div>
-                            <% } %>
-                            <!-- Product Info -->
-                            <div class="col-md-7">
-                              <ul class="list-unstyled mb-3 small">
-                                <li class="mb-2"><strong>SKU:</strong> <span class="text-muted"><%= p.sku %></span></li>
-                                <li class="mb-2"><strong>Category:</strong> <span class="text-muted"><%= p.category ? p.category.name : '-' %></span></li>
-                                <li class="mb-2"><strong>Stock:</strong> <span class="text-muted"><%= p.stock %></span></li>
-                                <li class="mb-2"><strong>Price:</strong> <span class="text-muted">₱<%= Number(p.price).toLocaleString() %></span></li>
-                              </ul>
-                              <h6 class="fw-semibold">Description</h6>
-                              <p class="text-muted small"><%= p.description %></p>
+                        <% } else { %>
+                          <div class="rounded-3 border bg-light d-flex align-items-center justify-content-center text-secondary" style="height: 180px;">
+                            <i class="fa fa-image fa-3x"></i>
+                          </div>
+                        <% } %>
+                      </div>
+                      <div class="col-md-8">
+                        <div class="row g-3">
+                          <div class="col-sm-6">
+                            <div class="bg-light p-3 rounded-3 border-start border-primary border-5">
+                              <p class="text-uppercase text-primary small fw-semibold mb-1">Price</p>
+                              <h4 class="fw-bolder mb-0">₱<%= Number(p.price).toLocaleString() %></h4>
                             </div>
                           </div>
-                        </div>
-
-                          <!-- Modal Footer -->
-                          <div class="modal-footer justify-content-end px-4 pb-3 border-0">
-                            <button type="button" class="btn btn-light btn-sm border" data-bs-dismiss="modal">
-                              <i class="fa fa-times me-1"></i> Close
-                            </button>
+                          <div class="col-sm-6">
+                            <div class="bg-light p-3 rounded-3 border-start border-success border-5">
+                              <p class="text-uppercase text-success small fw-semibold mb-1">In Stock</p>
+                              <h4 class="fw-bolder mb-0"><%= p.stock %> units</h4>
+                            </div>
                           </div>
-
+                          <div class="col-sm-6">
+                            <div class="bg-light p-3 rounded-3">
+                              <p class="text-uppercase text-muted small fw-semibold mb-1">Category</p>
+                              <h6 class="fw-normal mb-0">
+                                <% if(p.category){ %>
+                                  <%= p.category.parent ? p.category.parent.name + ' > ' : '' %><%= p.category.name %>
+                                <% } else { %>
+                                  -
+                                <% } %>
+                              </h6>
+                            </div>
+                          </div>
+                          <div class="col-sm-6">
+                            <div class="bg-light p-3 rounded-3">
+                              <p class="text-uppercase text-muted small fw-semibold mb-1">SKU</p>
+                              <h6 class="fw-normal mb-0"><%= p.sku || 'N/A' %></h6>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                      <!-- Edit Product Modal -->
-                      <div class="modal fade" id="editProductModal-<%= p._id %>" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-md modal-dialog-centered">
-                          <div class="modal-content rounded-4 shadow-sm small" style="font-size:0.9rem;">
-                            <div class="modal-header bg-primary text-white rounded-top-4 py-2">
-                              <h5 class="modal-title fw-semibold"><i class="fa fa-edit me-2"></i> Edit Product</h5>
-                              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                            </div>
-                            <form action="/products/<%= p._id %>?_method=PUT" method="POST" enctype="multipart/form-data">
-                              <div class="modal-body px-4 py-3">
-                                <!-- Title -->
-                                <div class="mb-3">
-                                  <label for="editTitle-<%= p._id %>" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
-                                  <input type="text" id="editTitle-<%= p._id %>" name="title" class="form-control rounded-2 shadow-sm" value="<%= p.title %>" required>
-                                </div>
-                                <!-- Category -->
-                                <div class="mb-3">
-                                  <label for="editCategory-<%= p._id %>" class="form-label fw-semibold">Category</label>
-                                  <input type="text" id="editCategory-<%= p._id %>" name="category" class="form-control rounded-2 shadow-sm" value="<%= p.category || '' %>">
-                                </div>
-                                <!-- Stock & Price -->
-                                <div class="row">
-                                  <div class="col-md-6 mb-3">
-                                    <label for="editStock-<%= p._id %>" class="form-label fw-semibold">Stock</label>
-                                    <input type="number" id="editStock-<%= p._id %>" name="stock" class="form-control rounded-2 shadow-sm" min="0" value="<%= p.stock %>">
-                                  </div>
-                                  <div class="col-md-6 mb-3">
-                                    <label for="editPrice-<%= p._id %>" class="form-label fw-semibold">Price <span class="text-danger">*</span></label>
-                                    <input type="number" id="editPrice-<%= p._id %>" name="price" class="form-control rounded-2 shadow-sm" min="0" step="0.01" value="<%= p.price %>" required>
-                                  </div>
-                                </div>
-                                <!-- Description -->
-                                <div class="mb-3">
-                                  <label for="editDescription-<%= p._id %>" class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
-                                  <textarea id="editDescription-<%= p._id %>" name="description" class="form-control rounded-2 shadow-sm" rows="2" required><%= p.description %></textarea>
-                                </div>
-                                <!-- Image Upload -->
-                                <div class="mb-2">
-                                  <label for="editImage-<%= p._id %>" class="form-label fw-semibold">Image</label>
-                                  <input type="file" id="editImage-<%= p._id %>" name="image" class="form-control rounded-2 shadow-sm" accept="image/*" onchange="previewImage(event, 'editPreview-<%= p._id %>')">
-                                </div>
-                                <!-- Image Preview -->
-                                <% if(p.image && p.image.data){ %>
-                                  <img id="editPreview-<%= p._id %>" src="data:<%= p.image.contentType %>;base64,<%= p.image.data.toString('base64') %>" class="img-fluid rounded border mt-3 shadow-sm" style="max-height:150px; width:auto;">
-                                <% } else { %>
-                                  <img id="editPreview-<%= p._id %>" class="img-fluid rounded border mt-3 shadow-sm" style="max-height:150px; display:none;">
-                                <% } %>
-                              </div>
-                              <div class="modal-footer justify-content-between px-4 rounded-bottom-4">
-                                <button type="button" class="btn btn-light border btn-md" data-bs-dismiss="modal"><i class="fa fa-times me-1"></i> Cancel</button>
-                                <button type="submit" class="btn btn-primary btn-md shadow-sm"><i class="fa fa-check me-1"></i> Save Changes</button>
-                              </div>
-                            </form>
+                    <div class="mt-4 pt-3 border-top">
+                      <h5 class="fw-bold mb-2">Description</h5>
+                      <p class="text-secondary small"><%= p.description %></p>
+                    </div>
+                  </div>
+
+                  <div class="modal-footer justify-content-end px-4 py-3 border-0">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                      <i class="fa fa-times me-1"></i> Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Edit Product Modal -->
+            <div class="modal fade" id="editProductModal-<%= p._id %>" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content rounded-3 border-0">
+                  <div class="modal-header bg-secondary text-white rounded-top-3 px-4 py-3">
+                    <h5 class="modal-title fw-bold fs-5"><i class="fa fa-edit me-2"></i> Edit Product: <%= p.title %></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <form action="/products/<%= p._id %>?_method=PUT" method="POST" enctype="multipart/form-data">
+                    <div class="modal-body p-4">
+                      <div class="row row-cols-1 row-cols-md-2 g-3 mb-3">
+                        <div class="col">
+                          <label for="editTitle-<%= p._id %>" class="form-label fw-semibold mb-1">Title <span class="text-danger">*</span></label>
+                          <input type="text" id="editTitle-<%= p._id %>" name="title" class="form-control rounded-2" value="<%= p.title %>" required>
+                        </div>
+
+
+
+                        <div class="col">
+                          <label for="editCategory-<%= p._id %>" class="form-label fw-semibold mb-1">Category</label>
+                          <select id="editCategory-<%= p._id %>" name="category" class="form-control rounded-2">
+                              <option value="">-- Select Category --</option>
+                <% function renderDropdown(cats, prefix='') { %> <%
+                cats.forEach(cat => { %>
+                <option value="<%= cat._id %>"><%= prefix + cat.name %></option>
+                <% if (cat.children && cat.children.length > 0) { %> <%=
+                renderDropdown(cat.children, prefix + '-- ') %> <% } %> <% }) %>
+                <% } %> <%= renderDropdown(categories) %>
+                          </select>
+
+
+                          
+
+
+
+                          
+                        </div>
+                      </div>
+
+                      <div class="row row-cols-1 row-cols-md-2 g-3 mb-3">
+                        <div class="col">
+                          <label for="editStock-<%= p._id %>" class="form-label fw-semibold mb-1">Stock Quantity</label>
+                          <input type="number" id="editStock-<%= p._id %>" name="stock" class="form-control rounded-2" min="0" step="1" value="<%= p.stock %>">
+                        </div>
+                        <div class="col">
+                          <label for="editPrice-<%= p._id %>" class="form-label fw-semibold mb-1">Price <span class="text-danger">*</span></label>
+                          <div class="input-group rounded-2">
+                            <span class="input-group-text bg-light text-muted fw-bold">₱</span>
+                            <input type="number" id="editPrice-<%= p._id %>" name="price" class="form-control" min="0" step="0.01" value="<%= p.price %>" required>
                           </div>
                         </div>
                       </div>
 
-                    <% }) %>
-                  <% } else { %>
-                    <tr><td colspan="8" class="text-center text-muted">No products found.</td></tr>
-                  <% } %>
-                </tbody>
-              </table>
-            </div>
+                      <div class="mb-4">
+                        <label for="editDescription-<%= p._id %>" class="form-label fw-semibold mb-1">Description <span class="text-danger">*</span></label>
+                        <textarea id="editDescription-<%= p._id %>" name="description" class="form-control rounded-2" rows="3" required><%= p.description %></textarea>
+                      </div>
 
-            <!-- Pagination -->
-            <nav class="mt-2">
-              <ul class="pagination pagination-sm justify-content-center">
-                <% if(currentPage>1){ %>
-                  <li class="page-item"><a class="page-link" href="?page=<%= currentPage-1 %>&search=<%= search %>&date=<%= date %>">&laquo;</a></li>
-                <% } else { %>
-                  <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
-                <% } %>
-
-                <% for(let i=1;i<=totalPages;i++){ %>
-                  <li class="page-item <%= i===currentPage?'active':'' %>"><a class="page-link" href="?page=<%= i %>&search=<%= search %>&date=<%= date %>"><%= i %></a></li>
-                <% } %>
-
-                <% if(currentPage<totalPages){ %>
-                  <li class="page-item"><a class="page-link" href="?page=<%= currentPage+1 %>&search=<%= search %>&date=<%= date %>">&raquo;</a></li>
-                <% } else { %>
-                  <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-                <% } %>
-              </ul>
-            </nav>
-          </div>
-
-          <%- include('../partials/modals/productModal') %>
-
-          <!-- Delete Confirmation Modal -->
-          <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-              <div class="modal-content rounded-4 shadow">
-                <div class="modal-header bg-danger text-white">
-                  <h5 class="modal-title"><i class="fa fa-exclamation-triangle me-2"></i> Confirm Delete</h5>
-                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body px-4 py-3">
-                  <p class="mb-0">Are you sure you want to delete this product? This action cannot be undone.</p>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal"><i class="fa fa-times me-1"></i> Cancel</button>
-                  <form id="deleteForm" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-trash me-1"></i> Delete</button>
+                      <div class="row g-3">
+                        <div class="col-12">
+                          <label for="editImage-<%= p._id %>" class="form-label fw-semibold mb-1">Update Image</label>
+                          <input type="file" id="editImage-<%= p._id %>" name="image" class="form-control rounded-2" accept="image/*" onchange="previewImage(event, 'editPreview-<%= p._id %>')">
+                          <small class="form-text text-muted mt-1 d-block">Uploading a new image will replace the current one.</small>
+                        </div>
+                        <div class="col-12 text-center">
+                          <% if(p.image && p.image.data){ %>
+                            <img id="editPreview-<%= p._id %>" src="data:<%= p.image.contentType %>;base64,<%= p.image.data.toString('base64') %>" class="img-fluid rounded-3 border mt-2 shadow-sm" style="max-height:150px; width:auto; object-fit: cover;">
+                          <% } else { %>
+                            <img id="editPreview-<%= p._id %>" class="img-fluid rounded-3 border mt-2" style="max-height:150px; display:none;">
+                          <% } %>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer d-flex justify-content-between px-4 py-3 bg-light border-top rounded-bottom-3">
+                      <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                        <i class="fa fa-undo-alt me-2"></i> Cancel
+                      </button>
+                      <button type="submit" class="btn btn-primary px-4">
+                        <i class="fa fa-save me-2"></i> Save Changes
+                      </button>
+                    </div>
                   </form>
                 </div>
               </div>
             </div>
-          </div>
 
+          <% }) %>
+        <% } else { %>
+          <tr><td colspan="8" class="text-center text-muted">No products found.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      <% if(currentPage>1){ %>
+        <li class="page-item"><a class="page-link" href="?page=<%= currentPage-1 %>&search=<%= search %>&date=<%= date %>">&laquo;</a></li>
+      <% } else { %>
+        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+      <% } %>
+
+      <% for(let i=1;i<=totalPages;i++){ %>
+        <li class="page-item <%= i===currentPage?'active':'' %>"><a class="page-link" href="?page=<%= i %>&search=<%= search %>&date=<%= date %>"><%= i %></a></li>
+      <% } %>
+
+      <% if(currentPage<totalPages){ %>
+        <li class="page-item"><a class="page-link" href="?page=<%= currentPage+1 %>&search=<%= search %>&date=<%= date %>">&raquo;</a></li>
+      <% } else { %>
+        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+      <% } %>
+    </ul>
+  </nav>
+</div>
+
+<%- include('../partials/modals/productModal') %>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered"> 
+    <div class="modal-content rounded-3 shadow-lg border-0">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title visually-hidden">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center pt-2 pb-4 px-4">
+        <div class="text-danger mb-3">
+          <i class="fa fa-exclamation-circle fa-3x"></i>
+        </div>
+        <h4 class="fw-bold mb-2">Delete this Product?</h4>
+        <p class="text-muted small mb-0">
+          This action will permanently remove the product and **cannot be undone**. Are you absolutely sure?
+        </p>
+      </div>
+      <div class="modal-footer justify-content-center border-0 pt-0 pb-3">
+        <button type="button" class="btn btn-outline-secondary w-45" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <form id="deleteForm" method="POST" class="d-inline w-45">
+          <button type="submit" class="btn btn-danger w-100">
+            <i class="fa fa-trash me-1"></i> Confirm Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

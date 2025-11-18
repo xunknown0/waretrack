@@ -1,79 +1,125 @@
-const Product = require("../models/productModel");
+const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-
+const Product = require("../models/productModel");
+const Category = require("../models/categoryModel");
 
 module.exports = {
-  // Display all products
-  async productDisplay(req, res, next) {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = 10;
-      const skip = (page - 1) * limit;
-      const search = req.query.search || "";
-      const date = req.query.date || "";
+  // Display all products with nested categories, search, date, and pagination
+async productDisplay(req, res, next) {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+    const search = req.query.search || "";
+    const date = req.query.date || "";
 
-      let query = {};
+    let query = {};
 
-      // Search filter
-      if (search) {
-        const keyword = search.toLowerCase();
-        if (keyword === "low") query.stock = { $gt: 0, $lt: 20 };
-        else if (keyword === "out") query.stock = 0;
-        else if (keyword === "available") query.stock = { $gt: 0 };
-        else
-          query.$or = [
-            { title: { $regex: search, $options: "i" } },
-            { description: { $regex: search, $options: "i" } },
-          ];
-      }
-
-      // Date filter
-      if (date) {
-        const start = new Date(date);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(date);
-        end.setHours(23, 59, 59, 999);
-        query.createdAt = { $gte: start, $lte: end };
-      }
-
-      const totalProducts = await Product.countDocuments(query);
-      const products = await Product.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
-
-      const totalPages = Math.ceil(totalProducts / limit);
-
-      res.render("products/index", {
-        products,
-        currentPage: page,
-        totalPages,
-        search,
-        date,
-        title: "Product Inventory",
-      });
-    } catch (err) {
-      next(err);
+    // Search filter
+    if (search) {
+      const keyword = search.toLowerCase();
+      if (keyword === "low") query.stock = { $gt: 0, $lt: 20 };
+      else if (keyword === "out") query.stock = 0;
+      else if (keyword === "available") query.stock = { $gt: 0 };
+      else
+        query.$or = [
+          { title: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+        ];
     }
-  },
+
+    // Date filter
+    if (date) {
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+      query.createdAt = { $gte: start, $lte: end };
+    }
+
+    // Fetch products with category populated
+    const totalProducts = await Product.countDocuments(query);
+    const products = await Product.find(query)
+      .populate("category") // category is now a full object
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(); // lean makes it easier to add new properties
+
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    // Map categories to allow nested structure
+    const categories = await Category.find().lean();
+    const categoryMap = {};
+    categories.forEach(cat => {
+      categoryMap[cat._id] = { ...cat, children: [] };
+    });
+
+    // Build nested categories
+    const nestedCategories = [];
+    categories.forEach(cat => {
+      if (cat.parent && categoryMap[cat.parent]) {
+        categoryMap[cat.parent].children.push(categoryMap[cat._id]);
+      } else {
+        nestedCategories.push(categoryMap[cat._id]);
+      }
+    });
+
+    // Add categoryName to products
+    products.forEach(prod => {
+      if (prod.category) {
+        if (prod.category.parent && categoryMap[prod.category.parent]) {
+          prod.categoryName =
+            categoryMap[prod.category.parent].name + " > " + prod.category.name;
+        } else {
+          prod.categoryName = prod.category.name;
+        }
+      } else {
+        prod.categoryName = "-";
+      }
+    });
+
+    res.render("products/index", {
+      products,
+      categories: nestedCategories,
+      currentPage: page,
+      totalPages,
+      search,
+      date,
+      title: "Product Inventory",
+    });
+  } catch (err) {
+    next(err);
+  }
+},
 
   // Create product with strong duplication check
   async productCreate(req, res, next) {
     try {
-      let { title, stock, price, description } = req.body;
+      let { title, stock, price, description, category } = req.body;
 
       // Normalize inputs
       title = title.trim().replace(/\s+/g, " ").toLowerCase();
+      title = title.charAt(0).toUpperCase() + title.slice(1); // Capitalize first letter
       description = description.trim().replace(/\s+/g, " ");
       price = parseFloat(price);
+      stock = parseInt(stock) || 0;
+
+      if (isNaN(price) || price < 0)
+        return res.status(400).send("Invalid price");
+      if (isNaN(stock) || stock < 0)
+        return res.status(400).send("Invalid stock");
 
       let image = null;
       let imageHash = null;
 
       if (req.file) {
-        const imagePath = path.join(__dirname, "../public/uploads/" + req.file.filename);
+        const imagePath = path.join(
+          __dirname,
+          "../public/uploads/" + req.file.filename
+        );
         const imageBuffer = fs.readFileSync(imagePath);
 
         imageHash = crypto.createHash("md5").update(imageBuffer).digest("hex");
@@ -87,20 +133,30 @@ module.exports = {
       // Strong duplication check
       const existingProduct = await Product.findOne({
         title: { $regex: `^${title}$`, $options: "i" },
-        price: price,
-        description: description,
+        price,
+        description,
         ...(imageHash ? { imageHash } : {}),
       });
 
       if (existingProduct) {
         return res
           .status(400)
-          .send("A product with the same title, price, description, and image already exists.");
+          .send(
+            "A product with the same title, price, description, and image already exists."
+          );
       }
 
-      const product = new Product({ title, stock, price, description, image, imageHash });
-      await product.save();
+      const product = new Product({
+        title,
+        stock,
+        price,
+        description,
+        category: category || null, // Assign category if provided
+        image,
+        imageHash,
+      });
 
+      await product.save();
       res.redirect("/products");
     } catch (err) {
       next(err);
@@ -109,63 +165,77 @@ module.exports = {
 
   // Update product with same duplication prevention
   async productUpdate(req, res, next) {
-    
-     try {
-    const { title, category, stock, price, description } = req.body;
-    const productId = req.params.id;
+    try {
+      const { title, category, stock, price, description } = req.body;
+      const productId = req.params.id;
 
-    if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).send("Invalid product ID");
-    }
+      if (!mongoose.Types.ObjectId.isValid(productId)) {
+        return res.status(400).send("Invalid product ID");
+      }
 
-    const normalizedTitle = title.trim().replace(/\s+/g, " ").toLowerCase();
-    const normalizedDescription = description.trim().replace(/\s+/g, " ");
-    const numericPrice = parseFloat(price);
+      // Normalize inputs
+      let normalizedTitle = title.trim().replace(/\s+/g, " ").toLowerCase();
+      normalizedTitle =
+        normalizedTitle.charAt(0).toUpperCase() + normalizedTitle.slice(1);
+      const normalizedDescription = description.trim().replace(/\s+/g, " ");
+      const numericPrice = parseFloat(price);
+      const numericStock = parseInt(stock) || 0;
 
-    let updateData = {
-      title: normalizedTitle,
-      stock: stock ? parseInt(stock) : 0,
-      price: numericPrice,
-      description: normalizedDescription,
-    };
+      if (isNaN(numericPrice) || numericPrice < 0)
+        return res.status(400).send("Invalid price");
+      if (isNaN(numericStock) || numericStock < 0)
+        return res.status(400).send("Invalid stock");
 
-    if (category) updateData.category = category;
-
-    let imageHash = null;
-    if (req.file) {
-      const imagePath = path.join(__dirname, "../public/uploads/" + req.file.filename);
-      const imageBuffer = fs.readFileSync(imagePath);
-      imageHash = crypto.createHash("md5").update(imageBuffer).digest("hex");
-
-      updateData.image = {
-        data: imageBuffer,
-        contentType: req.file.mimetype,
+      // Build update object
+      let updateData = {
+        title: normalizedTitle,
+        stock: numericStock,
+        price: numericPrice,
+        description: normalizedDescription,
       };
-      updateData.imageHash = imageHash;
+
+      if (category) updateData.category = category;
+
+      // Handle image if uploaded
+      let imageHash = null;
+      if (req.file) {
+        const imagePath = path.join(
+          __dirname,
+          "../public/uploads/" + req.file.filename
+        );
+        const imageBuffer = fs.readFileSync(imagePath);
+        imageHash = crypto.createHash("md5").update(imageBuffer).digest("hex");
+
+        updateData.image = {
+          data: imageBuffer,
+          contentType: req.file.mimetype,
+        };
+        updateData.imageHash = imageHash;
+      }
+
+      // Duplication check excluding current product
+      const existingProduct = await Product.findOne({
+        _id: { $ne: productId },
+        title: { $regex: `^${normalizedTitle}$`, $options: "i" },
+        price: numericPrice,
+        description: normalizedDescription,
+        ...(imageHash ? { imageHash } : {}),
+      });
+
+      if (existingProduct) {
+        return res
+          .status(400)
+          .send(
+            "Another product with the same title, price, description, and image already exists."
+          );
+      }
+
+      await Product.findByIdAndUpdate(productId, updateData, { new: true });
+
+      res.redirect("/products");
+    } catch (err) {
+      next(err);
     }
-
-    // Strong duplication check excluding current product
-    const existingProduct = await Product.findOne({
-      _id: { $ne: productId },
-      title: { $regex: `^${normalizedTitle}$`, $options: "i" },
-      price: numericPrice,
-      description: normalizedDescription,
-      ...(imageHash ? { imageHash } : {}),
-    });
-
-    if (existingProduct) {
-      return res
-        .status(400)
-        .send("Another product with the same title, price, description, and image already exists.");
-    }
-
-    await Product.findByIdAndUpdate(productId, updateData, { new: true });
-
-    res.redirect("/products");
-  } catch (err) {
-    next(err);
-  }
-
   },
 
   // Delete product
