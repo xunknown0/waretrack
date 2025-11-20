@@ -1,11 +1,14 @@
 <% layout('layouts/boilerplate') -%>
 
+
 <div class="container-fluid px-4 mt-4">
+
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <h2 class="fw-bold text-dark mb-0 fs-3">
       <i class="fa fa-box me-2 text-primary"></i> Inventory Product
     </h2>
+  
 
     <div class="d-flex gap-3 flex-wrap">
       <form class="d-flex gap-2" method="GET" action="/products">
@@ -21,9 +24,10 @@
     </div>
   </div>
 
+
   <!-- Products Table -->
   <div class="table-responsive shadow-sm overflow-hidden">
-    <table class="table table-hover align-middle text-center mb-0">
+    <table class="table table-bordered table-hover align-middle text-center mb-0">
       <thead class="table-primary text-white">
         <tr>
           <th>#</th>
@@ -272,7 +276,6 @@
     </ul>
   </nav>
 </div>
-<!-- ADD PRODUCT modal (once) -->
 <!-- ADD PRODUCT modal (once) -->
 <%- include('../partials/modals/productModal', { mode: 'add', categories: categories, product: {} }) %>
 

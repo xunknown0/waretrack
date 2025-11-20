@@ -112,10 +112,15 @@ async productDisplay(req, res, next) {
       price = parseFloat(price);
       stock = parseInt(stock) || 0;
 
-      if (isNaN(price) || price < 0)
-        return res.status(400).send("Invalid price");
-      if (isNaN(stock) || stock < 0)
-        return res.status(400).send("Invalid stock");
+   if (isNaN(price) || price < 0) {
+  req.flash('error', 'Invalid price');
+  return res.redirect('/products'); // redirect back to the product form/page
+}
+
+if (isNaN(stock) || stock < 0) {
+  req.flash('error', 'Invalid stock');
+  return res.redirect('/products');
+}
 
       let image = null;
       let imageHash = null;
@@ -144,11 +149,8 @@ async productDisplay(req, res, next) {
       });
 
       if (existingProduct) {
-        return res
-          .status(400)
-          .send(
-            "A product with the same title, price, description, and image already exists."
-          );
+        req.flash('error', 'Product already exists.');
+        return res.redirect('/products');
       }
 
       const product = new Product({
@@ -162,6 +164,7 @@ async productDisplay(req, res, next) {
       });
 
       await product.save();
+      req.flash('success', 'Product Added Successfully!');
       res.redirect("/products");
     } catch (err) {
       next(err);
@@ -186,10 +189,15 @@ async productDisplay(req, res, next) {
       const numericPrice = parseFloat(price);
       const numericStock = parseInt(stock) || 0;
 
-      if (isNaN(numericPrice) || numericPrice < 0)
-        return res.status(400).send("Invalid price");
-      if (isNaN(numericStock) || numericStock < 0)
-        return res.status(400).send("Invalid stock");
+        if (isNaN(numericPrice) || numericPrice < 0) {
+          req.flash('error', 'Invalid price');
+          return res.redirect('/products'); // redirect back to your product form/page
+        }
+
+        if (isNaN(numericStock) || numericStock < 0) {
+          req.flash('error', 'Invalid stock');
+          return res.redirect('/products');
+        }
 
       // Build update object
       let updateData = {
@@ -226,18 +234,18 @@ async productDisplay(req, res, next) {
         description: normalizedDescription,
         ...(imageHash ? { imageHash } : {}),
       });
+            if (existingProduct) {
+              req.flash(
+                'error',
+                ' Product Already Exists.'
+              );
+              return res.redirect('/products'); // redirect back to your product list/form page
+            }
 
-      if (existingProduct) {
-        return res
-          .status(400)
-          .send(
-            "Another product with the same title, price, description, and image already exists."
-          );
-      }
+        await Product.findByIdAndUpdate(productId, updateData, { new: true });
+        req.flash('success', 'Product Updated Successfully!');
+        res.redirect("/products");
 
-      await Product.findByIdAndUpdate(productId, updateData, { new: true });
-
-      res.redirect("/products");
     } catch (err) {
       next(err);
     }
@@ -247,7 +255,9 @@ async productDisplay(req, res, next) {
   async productDelete(req, res, next) {
     try {
       await Product.findByIdAndDelete(req.params.id);
+      req.flash('success', 'Product Deleted Successfully!');
       res.redirect("/products");
+
     } catch (err) {
       next(err);
     }

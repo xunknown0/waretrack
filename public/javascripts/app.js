@@ -147,3 +147,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+
+//  // Remove flash messages after 5 seconds
+//     window.addEventListener("DOMContentLoaded", () => {
+//       const flashes = document.querySelectorAll(".flash-message");
+//       flashes.forEach(flash => {
+//         setTimeout(() => {
+//           flash.remove();
+//         }, 5000); // 5 seconds
+//       });
+//     });
+
+ // Auto-remove flash messages after 5s
+    window.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".flash-message").forEach(flash => {
+        setTimeout(() => flash.remove(), 5000);
+      });
+
+      // Show loading on form submit
+      document.querySelectorAll("form").forEach(form => {
+        form.addEventListener("submit", () => {
+          document.getElementById("loading-overlay").classList.add("active");
+        });
+      });
+    });
+
+    

@@ -11276,18 +11276,6 @@ body {
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
-
-  /* Slide-in from right animation */
-  .toast.slide-in {
-    transform: translateX(100%);
-    opacity: 0;
-    transition: transform 0.5s ease, opacity 0.5s ease;
-  }
-  .toast.show.slide-in {
-    transform: translateX(0);
-    opacity: 1;
-  }
-
     .action-btn {
     display: flex;
     align-items: center;
@@ -11396,3 +11384,53 @@ body {
 #deleteConfirmModal .modal-footer {
   gap: 0.5rem;
 }
+    /* =======================
+   Flash Container
+======================= */
+#flash-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 360px;
+}
+
+/* =======================
+   Flash Messages
+======================= */
+.flash-message {
+  opacity: 0;
+  transform: translateX(120%);
+  padding: 0.8rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  font-weight: 500;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: slideIn 0.5s forwards, fadeOut 0.5s forwards;
+  animation-delay: 0s, 4s;
+}
+
+/* Types */
+.flash-message.success { background-color: #28a745; }
+.flash-message.error { background-color: #dc3545; }
+.flash-message.warning { background-color: #ffc107; color: #212529; }
+
+/* Slide In / Fade Out */
+@keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+@keyframes fadeOut { to { opacity: 0; transform: translateX(120%); } }
+
+/* Close button */
+.flash-message .close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: inherit;
+}
+

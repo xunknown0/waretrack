@@ -16,6 +16,10 @@ const productRoutes = require('./routes/products');
 const categoriesRoutes = require('./routes/category');
 
 
+
+
+
+
 const app = express();
 
 //Connect Database
@@ -52,16 +56,17 @@ app.use(
 
 app.use(flash());
 
-// Make flash messages available in all EJS views
+// Make flash messages available in all views
 app.use((req, res, next) => {
-  res.locals.success_msg = req.flash("success");
-  res.locals.error_msg = req.flash("error");
+  res.locals.success_msg = req.flash("success") || [];
+  res.locals.error_msg = req.flash("error") || [];
+  res.locals.warning_msg = req.flash("warning") || []; // ensure always defined
   next();
 });
+
 app.use('/', dashboardRoutes);        // Dashboard routes
 app.use('/products', productRoutes);  // Product routes
-app.use('/categories', categoriesRoutes);
-
+app.use('/categories', categoriesRoutes); // matches controller redirects
 
 
 

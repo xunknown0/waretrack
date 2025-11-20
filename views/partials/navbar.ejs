@@ -1,32 +1,54 @@
 <nav class="sb-topnav navbar navbar-expand navbar-dark bg-primary">
-  <div class="container-fluid d-flex justify-content-between align-items-center">
 
+    <!-- Loading Overlay -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+
+
+  
+ <!-- Flash container -->
+  <div id="flash-container">
+    <% if (success_msg.length > 0) { %>
+      <div class="flash-message success">
+        <span><%= success_msg %></span>
+        <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+      </div>
+    <% } %>
+    <% if (error_msg.length > 0) { %>
+      <div class="flash-message error">
+        <span><%= error_msg %></span>
+        <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+      </div>
+    <% } %>
+    <% if (warning_msg && warning_msg.length > 0) { %>
+      <div class="flash-message warning">
+        <span><%= warning_msg %></span>
+        <button class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+      </div>
+    <% } %>
+  </div>
+
+
+
+  <div class="container-fluid d-flex justify-content-between align-items-center">
     <!-- Left Side: Sidebar Toggle + Brand -->
     <div class="d-flex align-items-center gap-2">
-
-      <!-- Navbar Brand -->
       <a class="navbar-brand d-flex align-items-center mb-0" href="/">
         <i class="fas fa-store me-2" style="color: #ffffff; font-weight: 700; font-size: 1.35rem;"></i>
         <span style="font-weight: 700; font-size: 1.25rem; color: #ffffff;">WTrack Inventory</span>
       </a>
-
-      <!-- Sidebar Toggle -->
       <button class="btn btn-link btn-sm text-white" id="sidebarToggle">
         <i class="fas fa-bars"></i>
       </button>
-
     </div>
 
     <!-- Right Side: Live Clock, Notifications, User -->
     <ul class="navbar-nav d-flex align-items-center gap-3">
-
-      <!-- Live Date & Time -->
       <li class="nav-item d-none d-md-flex align-items-center text-white">
         <i class="fas fa-clock me-2"></i>
         <small id="dateTimeDisplay" class="fw-semibold"></small>
       </li>
-
-      <!-- Notifications -->
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle position-relative text-white" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
           <i class="fas fa-bell"></i>
@@ -40,8 +62,6 @@
           <li><a class="dropdown-item" href="#">Product B Updated</a></li>
         </ul>
       </li>
-
-      <!-- User Dropdown -->
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle text-white" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
           <i class="fas fa-user fa-fw"></i>
@@ -53,21 +73,11 @@
           <li><a class="dropdown-item" href="#!">Logout</a></li>
         </ul>
       </li>
-
     </ul>
   </div>
 </nav>
 
 <script>
   // Live Date & Time
-  function updateDateTime() {
-    const now = new Date();
-    const options = {
-      weekday:'short', month:'short', day:'numeric', year:'numeric',
-      hour:'2-digit', minute:'2-digit', second:'2-digit'
-    };
-    document.getElementById("dateTimeDisplay").textContent = now.toLocaleString('en-US', options);
-  }
-  setInterval(updateDateTime, 1000);
-  updateDateTime();
+ 
 </script>
