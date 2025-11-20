@@ -39,47 +39,52 @@ async productDisplay(req, res, next) {
       query.createdAt = { $gte: start, $lte: end };
     }
 
-    // Fetch products with category populated
+    // Fetch products with category and parent populated
     const totalProducts = await Product.countDocuments(query);
     const products = await Product.find(query)
-      .populate("category") // category is now a full object
+      .populate({
+        path: "category",
+        populate: { path: "parent" },
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .lean(); // lean makes it easier to add new properties
+      .lean();
 
     const totalPages = Math.ceil(totalProducts / limit);
 
-    // Map categories to allow nested structure
+    // Fetch all categories for dropdown
     const categories = await Category.find().lean();
+
+    // Build map and nested structure for dropdown
     const categoryMap = {};
-    categories.forEach(cat => {
-      categoryMap[cat._id] = { ...cat, children: [] };
+    categories.forEach((cat) => {
+      categoryMap[cat._id] = cat;
     });
 
-    // Build nested categories
     const nestedCategories = [];
-    categories.forEach(cat => {
+    categories.forEach((cat) => {
       if (cat.parent && categoryMap[cat.parent]) {
-        categoryMap[cat.parent].children.push(categoryMap[cat._id]);
+        if (!categoryMap[cat.parent].children) categoryMap[cat.parent].children = [];
+        categoryMap[cat.parent].children.push(cat);
       } else {
-        nestedCategories.push(categoryMap[cat._id]);
+        nestedCategories.push(cat);
       }
     });
 
-    // Add categoryName to products
-    products.forEach(prod => {
-      if (prod.category) {
-        if (prod.category.parent && categoryMap[prod.category.parent]) {
-          prod.categoryName =
-            categoryMap[prod.category.parent].name + " > " + prod.category.name;
-        } else {
-          prod.categoryName = prod.category.name;
-        }
-      } else {
-        prod.categoryName = "-";
-      }
-    });
+    // Only show child category name
+   products.forEach((prod) => {
+  if (prod.category) {
+    if (prod.category.parent && prod.category.parent.name) {
+      prod.categoryName = prod.category.parent.name + " > " + prod.category.name;
+    } else {
+      prod.categoryName = prod.category.name;
+    }
+  } else {
+    prod.categoryName = "-";
+  }
+});
+
 
     res.render("products/index", {
       products,

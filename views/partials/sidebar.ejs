@@ -2,95 +2,70 @@
   <div class="sb-sidenav-menu">
     <div class="nav">
 
-      <!-- Dashboard -->
-      <a class="nav-link" href="/">
-        <div class="sb-nav-link-icon"><i class="fa fa-dashboard"></i></div>
-        Dashboard
-      </a>
+      <% 
+      const menu = [
+        { title: 'Dashboard', icon: 'fa fa-dashboard', link: '/' },
+        { 
+          title: 'Inventory', icon: 'fa-solid fa-box', children: [
+            { title: 'Products', icon: 'fa-solid fa-bag-shopping', link: '/products' },
+            { title: 'Categories', icon: 'fa-solid fa-tags', link: '/categories' }
+          ]
+        },
+        { 
+          title: 'Orders', icon: 'fas fa-shopping-cart', children: [
+            { title: 'Pending', icon: 'fa-solid fa-hourglass-half', link: '#' },
+            { title: 'Completed', icon: 'fa-solid fa-circle-check', link: '#' }
+          ]
+        },
+        { 
+          title: 'Sales', icon: 'fas fa-money-bill', children: [
+            { title: 'Revenue', icon: 'fa-solid fa-chart-line', link: '#' },
+            { title: 'Refunds', icon: 'fa-solid fa-rotate-left', link: '#' }
+          ]
+        },
+        { 
+          title: 'Customers', icon: 'fa fa-users', children: [
+            { title: 'New', icon: 'fa-solid fa-user-plus', link: '#' },
+            { title: 'Repeat', icon: 'fa-solid fa-user-pen', link: '#' }
+          ]
+        },
+        { 
+          title: 'Reports', icon: 'far fa-chart-bar', children: [
+            { title: 'Sales', icon: 'fa-solid fa-chart-simple', link: '#' },
+            { title: 'Inventory', icon: 'fa-solid fa-boxes-stacked', link: '#' }
+          ]
+        },
+        { 
+          title: 'Settings', icon: 'fas fa-cog', children: [
+            { title: 'Store', icon: 'fa-solid fa-shop', link: '#' },
+            { title: 'User', icon: 'fa-solid fa-user-gear', link: '#' }
+          ]
+        }
+      ];
+      %>
 
-      <!-- Inventory -->
-      <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseInventory" aria-expanded="false">
-        <div class="sb-nav-link-icon"><i class="fa-solid fa-box"></i></div>
-        Inventory
-        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-caret-down"></i></div>
-      </a>
-      <div class="collapse" id="collapseInventory" data-bs-parent="#sidenavAccordion">
-        <nav class="sb-sidenav-menu-nested nav">
-          <a class="nav-link" href="/products"><i class="fa-solid fa-bag-shopping me-2"></i>Products</a>
-          <a class="nav-link" href="/categories"><i class="fa-solid fa-tags me-2"></i>Categories</a>
-        </nav>
-      </div>
-
-      <!-- Orders -->
-      <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseOrders" aria-expanded="false">
-        <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
-        Orders
-        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-caret-down"></i></div>
-      </a>
-      <div class="collapse" id="collapseOrders" data-bs-parent="#sidenavAccordion">
-        <nav class="sb-sidenav-menu-nested nav">
-          <a class="nav-link" href="#"><i class="fa-solid fa-hourglass-half me-2"></i>Pending</a>
-          <a class="nav-link" href="#"><i class="fa-solid fa-circle-check me-2"></i>Completed</a>
-        </nav>
-      </div>
-
-      <!-- Sales -->
-      <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseSales" aria-expanded="false">
-        <div class="sb-nav-link-icon"><i class="fas fa-money-bill"></i></div>
-        Sales
-        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-caret-down"></i></div>
-      </a>
-      <div class="collapse" id="collapseSales" data-bs-parent="#sidenavAccordion">
-        <nav class="sb-sidenav-menu-nested nav">
-          <a class="nav-link" href="#"><i class="fa-solid fa-chart-line me-2"></i>Revenue</a>
-          <a class="nav-link" href="#"><i class="fa-solid fa-rotate-left me-2"></i>Refunds</a>
-        </nav>
-      </div>
-
-      <!-- Customers -->
-      <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseCustomers" aria-expanded="false">
-        <div class="sb-nav-link-icon"><i class="fa fa-users"></i></div>
-        Customers
-        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-caret-down"></i></div>
-      </a>
-      <div class="collapse" id="collapseCustomers" data-bs-parent="#sidenavAccordion">
-        <nav class="sb-sidenav-menu-nested nav">
-          <a class="nav-link" href="#"><i class="fa-solid fa-user-plus me-2"></i>New</a>
-          <a class="nav-link" href="#"><i class="fa-solid fa-user-pen me-2"></i>Repeat</a>
-        </nav>
-      </div>
-
-      <!-- Reports -->
-      <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseReports" aria-expanded="false">
-        <div class="sb-nav-link-icon"><i class="far fa-chart-bar"></i></div>
-        Reports
-        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-caret-down"></i></div>
-      </a>
-      <div class="collapse" id="collapseReports" data-bs-parent="#sidenavAccordion">
-        <nav class="sb-sidenav-menu-nested nav">
-          <a class="nav-link" href="#"><i class="fa-solid fa-chart-simple me-2"></i>Sales</a>
-          <a class="nav-link" href="#"><i class="fa-solid fa-boxes-stacked me-2"></i>Inventory</a>
-        </nav>
-      </div>
-
-      <!-- Settings -->
-      <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="false">
-        <div class="sb-nav-link-icon"><i class="fas fa-cog"></i></div>
-        Settings
-        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-caret-down"></i></div>
-      </a>
-      <div class="collapse" id="collapseSettings" data-bs-parent="#sidenavAccordion">
-        <nav class="sb-sidenav-menu-nested nav">
-          <a class="nav-link" href="#"><i class="fa-solid fa-shop me-2"></i>Store</a>
-          <a class="nav-link" href="#"><i class="fa-solid fa-user-gear me-2"></i>User</a>
-        </nav>
-      </div>
+      <% menu.forEach((item, index) => { %>
+        <% if(item.children){ %>
+          <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapse<%= index %>" aria-expanded="false">
+            <div class="sb-nav-link-icon"><i class="<%= item.icon %>"></i></div>
+            <%= item.title %>
+            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-caret-down"></i></div>
+          </a>
+          <div class="collapse" id="collapse<%= index %>" data-bs-parent="#sidenavAccordion">
+            <nav class="sb-sidenav-menu-nested nav">
+              <% item.children.forEach(child => { %>
+                <a class="nav-link" href="<%= child.link %>"><i class="<%= child.icon %> me-2"></i><%= child.title %></a>
+              <% }) %>
+            </nav>
+          </div>
+        <% } else { %>
+          <a class="nav-link" href="<%= item.link %>">
+            <div class="sb-nav-link-icon"><i class="<%= item.icon %>"></i></div>
+            <%= item.title %>
+          </a>
+        <% } %>
+      <% }) %>
 
     </div>
-  </div>
-
-  <!-- Footer -->
-  <div class="sb-sidenav-footer">
-    Start Bootstrap
   </div>
 </nav>

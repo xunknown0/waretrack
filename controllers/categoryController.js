@@ -1,62 +1,78 @@
-const Category = require("../models/categoryModel"); // Make sure this exists
+const Category = require("../models/categoryModel");
 const mongoose = require("mongoose");
 
 module.exports = {
+
   // Display all categories
-  async categoryDisplay(req, res, next) {
-    try {
-      const categories = await Category.find().sort({ name: 1 });
+async categoryDisplay(req, res, next) {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10; // items per page
+    const skip = (page - 1) * limit;
 
-      // Build a nested category tree
-      const categoryMap = {};
-      categories.forEach(cat => {
-        categoryMap[cat._id] = { ...cat._doc, children: [] };
-      });
+    // Fetch all categories (parents + children)
+    const allCategories = await Category.find().sort({ createdAt: -1 });
 
-      const nestedCategories = [];
-      categories.forEach(cat => {
-        if (cat.parent && categoryMap[cat.parent]) {
-          categoryMap[cat.parent].children.push(categoryMap[cat._id]);
-        } else {
-          nestedCategories.push(categoryMap[cat._id]);
-        }
-      });
+    // Fetch only child categories for pagination
+    const totalItems = await Category.countDocuments({ parent: { $ne: null } });
+    const totalPages = Math.ceil(totalItems / limit);
 
-      res.render("categories/index", {
-        categories: nestedCategories,
-        title: "Categories"
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
+    const childCategories = await Category.find({ parent: { $ne: null } })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-  // Create a new category
+    res.render('categories', {
+      categories: allCategories, // used to populate parent dropdowns
+      childCategories,
+      pagination: {
+        currentPage: page,
+        totalPages
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+},
+  // Create a new category (parent or child)
   async categoryCreate(req, res, next) {
     try {
-      const { name, parent } = req.body;
-      if (!name || !name.trim()) return res.status(400).send("Category name is required");
+      let { name, parent } = req.body;
 
-      const category = new Category({
-        name: name.trim(),
-        parent: parent || null
-      });
+      // Clean parent value
+      if (!parent || parent === "null" || parent === "undefined" || parent.trim() === "") {
+        parent = null;
+      }
 
-      await category.save();
-      res.redirect("/categories");
+      await Category.create({ name, parent });
+
+      req.flash("success", `Category "${name}" added successfully.`);
+      res.redirect("/categories"); // reload the same page
     } catch (err) {
-      next(err);
+      console.error("Category creation error:", err);
+      req.flash("error", "Failed to add category. Make sure parent is valid.");
+      res.redirect("/categories");
     }
   },
 
-  // Delete category
+  // Delete category recursively
   async categoryDelete(req, res, next) {
     try {
       const id = req.params.id;
-      if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).send("Invalid category ID");
+      if (!mongoose.Types.ObjectId.isValid(id))
+        return res.status(400).send("Invalid category ID");
 
-      // Optionally: check if category has children or products before deleting
-      await Category.findByIdAndDelete(id);
+      async function deleteCategoryTree(categoryId) {
+        const children = await Category.find({ parent: categoryId });
+        for (const child of children) {
+          await deleteCategoryTree(child._id);
+        }
+        await Category.findByIdAndDelete(categoryId);
+      }
+
+      await deleteCategoryTree(id);
+
+      req.flash("success", "Category and subcategories deleted successfully");
       res.redirect("/categories");
     } catch (err) {
       next(err);

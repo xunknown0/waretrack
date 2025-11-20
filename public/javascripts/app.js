@@ -106,3 +106,44 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("editParentCategory").value = button.getAttribute("data-parent");
     });
 });
+
+ function previewImage(event, id) {
+    const output = document.getElementById(id);
+    output.src = URL.createObjectURL(event.target.files[0]);
+    output.style.display = "block";
+  }
+
+   document.querySelectorAll(".sb-sidenav a.nav-link").forEach(link => {
+    link.addEventListener("click", function (e) {
+      const href = this.getAttribute("href");
+
+      // Ignore collapsible menu (they have "#")
+      if (href === "#" || this.dataset.bsToggle === "collapse") return;
+
+      e.preventDefault(); // stop instant redirect
+      this.classList.add("nav-loading");
+
+      setTimeout(() => {
+        window.location.href = href;
+      }, 600); // delay while showing spinner
+    });
+  });
+
+
+  $(document).ready(function() {
+  $('#productCategory').select2({
+    theme: 'bootstrap-5',
+    width: '100%',
+    templateResult: function (state) {
+      if (!state.id) return state.text; // placeholder
+      const isParent = $(state.element).data('parent'); // check parent
+      if(isParent){
+        return $('<span style="font-weight:bold; color:#333;">' + state.text + '</span>');
+      }
+      return $('<span>' + state.text + '</span>');
+    },
+    templateSelection: function (state) {
+      return state.text;
+    }
+  });
+});
