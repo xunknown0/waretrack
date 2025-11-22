@@ -1,60 +1,48 @@
-<main>
-  <div class="container-fluid px-4">
-    <!-- Page Header -->
-    <h1 class="mt-4">Dashboard</h1>
-    <ol class="breadcrumb mb-4">
-      <li class="breadcrumb-item active">Dashboard</li>
-    </ol>
+<div class="container-fluid px-4 mt-4">
+    <h2 class="fw-bold mb-4">Dashboard</h2>
 
-<div class="col-12 col-lg-10">
-  <div class="row g-4">
-    <% const stats = [
-      { title: 'Total Products', value: totalProducts, icon: 'fa-box', bg: 'bg-primary' },
-      { title: 'Total Sales', value: `₱${totalSales}`, icon: 'fa-chart-line', bg: 'bg-warning' },
-      { title: 'Stock', value: totalStock, icon: 'fa-cubes', bg: 'bg-danger' }
-    ]; %>
-
-    <% stats.forEach(stat => { %>
-      <div class="col-xl-4 col-md-6">
-        <div class="card shadow-sm  text-white <%= stat.bg %> h-100">
-          <div class="card-body d-flex justify-content-between align-items-center p-4">
-            <div>
-              <h6 class="text-uppercase small opacity-75 mb-1"><%= stat.title %></h6>
-              <h3 class="fw-bold mb-0"><%= stat.value %></h3>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h5>Total Products</h5>
+                <h3><%= totalProducts %></h3>
             </div>
-            <i class="fa <%= stat.icon %> fs-1 opacity-50"></i>
-          </div>
         </div>
-      </div>
-    <% }) %>
-  </div>
-</div>
-
-
-
-    <!-- Content Placeholders / Charts -->
-    <div class="row g-4 mt-3">
-      <div class="col-12 col-lg-6">
-        <div class="card shadow-sm rounded-3 h-100">
-          <div class="card-header">
-            <i class="fas fa-table me-2"></i> Data Table Placeholder
-          </div>
-          <div class="card-body">
-            Content for your first large box (e.g., Data Table)
-          </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h5>Total Sales</h5>
+                <h3><%= totalSales %></h3>
+            </div>
         </div>
-      </div>
-      <div class="col-12 col-lg-6">
-        <div class="card shadow-sm rounded-3 h-100">
-          <div class="card-header">
-            <i class="fas fa-chart-pie me-2"></i> Pie Chart Placeholder
-          </div>
-          <div class="card-body">
-            Content for your second large box (e.g., Pie Chart)
-          </div>
+        <div class="col-md-3">
+            <div class="card text-center p-3">
+                <h5>Total Stock</h5>
+                <h3><%= totalStock %></h3>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-</main>
 
+    <!-- Products Table -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Product Name</th>
+                    <th>Stock</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% products.forEach(product => { %>
+                    <tr>
+                        <td><%= product.sku %></td>
+                        <td><%= product.name %></td>
+                        <td><%= product.stock %></td>
+                        <td><%= product.price %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>

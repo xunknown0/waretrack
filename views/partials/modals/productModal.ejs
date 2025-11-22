@@ -1,149 +1,96 @@
-<% 
-  // Determine mode
-  const isAdd = mode === 'add';
-  const isEdit = mode === 'edit';
-  const isView = mode === 'view';
-%>
-
-<div class="modal fade" id="<%= isAdd ? 'addProductModal' : isEdit ? 'editProductModal-' + product._id : 'viewProductModal-' + product._id %>" tabindex="-1" aria-hidden="true">
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg rounded-3">
+    <div class="modal-content border-0 shadow-lg rounded-4">
 
       <!-- Modal Header -->
-      <div class="modal-header bg-primary text-white px-4 py-3 rounded-top-3">
+      <div class="modal-header bg-gradient-primary text-white px-4 py-3 rounded-top-4">
         <h5 class="modal-title fw-bold fs-5">
-          <% if (isAdd) { %>
-            <i class="fa fa-boxes-stacked me-2"></i> Add New Product
-          <% } else if (isEdit) { %>
-            <i class="fa fa-edit me-2"></i> Edit Product: <%= product?.title %>
-          <% } else { %>
-            <i class="fa fa-eye me-2"></i> Product Details
-          <% } %>
+          <i class="fa fa-boxes-stacked me-2"></i> Add New Product
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
-      <% if(isView){ %>
-        <!-- VIEW MODE -->
+      <!-- Modal Body -->
+      <form action="/products" method="POST" enctype="multipart/form-data">
         <div class="modal-body p-4">
-          <div class="row g-4">
-            <div class="col-md-4">
-              <% if(product?.image?.data){ %>
-                <img src="data:<%= product.image.contentType %>;base64,<%= product.image.data.toString('base64') %>" class="img-fluid border" style="height:180px; object-fit:cover;" alt="<%= product.title %>">
-              <% } else { %>
-                <div class="border bg-light d-flex justify-content-center align-items-center" style="height:180px;">
-                  <i class="fa fa-image fa-3x text-secondary"></i>
-                </div>
-              <% } %>
+
+          <div class="row g-3 mb-3">
+            <!-- Product Title -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold mb-1">Product Title <span class="text-danger">*</span></label>
+              <input type="text" name="title" class="form-control form-control-lg rounded-3 shadow-sm" placeholder="e.g., Ergonomic Chair" required>
             </div>
-            <div class="col-md-8">
-              <h3 class="fw-bolder"><%= product?.title || '-' %></h3>
-              <p class="small text-muted">SKU: <%= product?.sku || 'N/A' %></p>
-              <p class="mb-1"><strong>Category:</strong> 
-                <% if(product?.category?.parent){ %>
-                  <strong><%= product.category.parent.name %></strong> → <%= product.category.name %>
-                <% } else if(product?.category){ %>
-                  <%= product.category.name %>
-                <% } else { %>
-                  -
-                <% } %>
-              </p>
-              <p class="mb-1"><strong>Stock:</strong> <%= product?.stock ?? 0 %> units</p>
-              <p class="mb-1"><strong>Price:</strong> ₱<%= Number(product?.price ?? 0).toLocaleString() %></p>
-              <p class="mb-0"><strong>Description:</strong> <%= product?.description || '-' %></p>
+
+            <!-- Category -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold mb-1">Category <span class="text-danger">*</span></label>
+              <select name="category" class="form-select form-select-lg rounded-3 shadow-sm select2" required>
+                <option value="">-- Select Category --</option>
+                <% 
+                  function renderDropdown(cats, prefix='') { 
+                    cats.forEach(cat => { 
+                      const isParent = cat.children && cat.children.length > 0;
+                      const parentStyle = isParent ? 'font-weight:bold; color:#007bff; background-color:#e9f5ff;' : '';
+                %>
+                    <option value="<%= cat._id %>" <%= isParent ? 'disabled style="' + parentStyle + '"' : '' %>>
+                      <%= prefix + cat.name %>
+                    </option>
+                    <% if(isParent) { %>
+                      <%= renderDropdown(cat.children, prefix + '  ') %>
+                    <% } %>
+                <% 
+                    }) 
+                  } 
+                %>
+                <%= renderDropdown(categories) %>
+              </select>
             </div>
           </div>
+
+          <!-- Stock & Price -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold mb-1">Stock Quantity</label>
+              <input type="number" name="stock" class="form-control form-control-lg rounded-3 shadow-sm" min="0" step="1" value="0">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold mb-1">Price <span class="text-danger">*</span></label>
+              <div class="input-group rounded-3 shadow-sm">
+                <span class="input-group-text bg-light text-muted fw-bold">₱</span>
+                <input type="number" name="price" class="form-control form-control-lg" min="0" step="0.01" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold mb-1">Description <span class="text-danger">*</span></label>
+            <textarea name="description" class="form-control form-control-lg rounded-3 shadow-sm" rows="3" placeholder="Write product description..." required></textarea>
+          </div>
+
+          <!-- Image Upload -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold mb-1">Product Image</label>
+            <input type="file" name="image" class="form-control rounded-3 shadow-sm" accept="image/*" onchange="previewImage(event, 'addImagePreview')">
+            <small class="text-muted d-block mt-1">Optional. Max size: 2MB.</small>
+          </div>
+          <div class="text-center">
+            <img id="addImagePreview" class="img-fluid rounded-4 border mt-2 shadow-sm" style="max-height:180px; display:none; object-fit:cover;">
+          </div>
+
         </div>
-        <div class="modal-footer justify-content-end px-4 py-3 border-0">
-          <button type="button" class="btn btn-outline-primary px-4" data-bs-dismiss="modal">
-            <i class="fa fa-times me-1"></i> Close
+
+        <!-- Modal Footer -->
+        <div class="modal-footer d-flex justify-content-between px-4 py-3 bg-light border-top rounded-bottom-4">
+          <button type="button" class="btn btn-outline-secondary btn-lg px-4" data-bs-dismiss="modal">
+            <i class="fa fa-times me-2"></i> Cancel
+          </button>
+          <button type="submit" class="btn btn-primary btn-lg px-4">
+            <i class="fa fa-plus-circle me-2"></i> Add Product
           </button>
         </div>
-
-      <% } else { %>
-        <!-- ADD / EDIT MODE -->
-        <form action="<%= isAdd ? '/products' : '/products/' + product._id + '?_method=PUT' %>" method="POST" enctype="multipart/form-data">
-          <div class="modal-body p-4">
-
-            <!-- Title & Category -->
-            <div class="row row-cols-1 row-cols-md-2 g-3 mb-3">
-              <div class="col">
-                <label class="form-label fw-semibold mb-1">Product Title <span class="text-danger">*</span></label>
-                <input type="text" name="title" class="form-control rounded-2" placeholder="e.g., Ergonomic Chair" value="<%= product?.title || '' %>" required>
-              </div>
-
-              <div class="col">
-                <label class="form-label fw-semibold mb-1">Category <span class="text-danger">*</span></label>
-       <select id="productCategory" name="category" class="form-control select2" required>
-  <option value="">-- Select Category --</option>
-  <% function renderDropdown(cats, prefix=''){ %>
-    <% cats.forEach(cat => { %>
-      <% 
-        const isSelected = product && product.category && product.category._id && product.category._id.toString() === cat._id.toString();
-        const isParent = cat.children && cat.children.length > 0;
-      %>
-      <option value="<%= cat._id %>" <%= isSelected ? 'selected' : '' %> <%= isParent ? 'disabled data-parent="true"' : '' %>>
-        <%= prefix + cat.name %>
-      </option>
-      <% if(isParent){ %>
-        <%= renderDropdown(cat.children, prefix + '-') %>
-      <% } %>
-    <% }) %>
-  <% } %>
-  <%= renderDropdown(categories) %>
-</select>
-
-
-              </div>
-            </div>
-
-            <!-- Stock & Price -->
-            <div class="row row-cols-1 row-cols-md-2 g-3 mb-3">
-              <div class="col">
-                <label class="form-label fw-semibold mb-1">Stock Quantity</label>
-                <input type="number" name="stock" class="form-control rounded-2" min="0" step="1" value="<%= product?.stock ?? 0 %>">
-              </div>
-              <div class="col">
-                <label class="form-label fw-semibold mb-1">Price <span class="text-danger">*</span></label>
-                <div class="input-group rounded-2">
-                  <span class="input-group-text bg-light text-muted fw-bold">₱</span>
-                  <input type="number" name="price" class="form-control" min="0" step="0.01" value="<%= product?.price ?? 0 %>" required>
-                </div>
-              </div>
-            </div>
-
-            <!-- Description -->
-            <div class="mb-3">
-              <label class="form-label fw-semibold mb-1">Description <span class="text-danger">*</span></label>
-              <textarea name="description" class="form-control rounded-2" rows="3" required><%= product?.description || '' %></textarea>
-            </div>
-
-            <!-- Image Upload -->
-            <div class="mb-3">
-              <label class="form-label fw-semibold mb-1">Product Image</label>
-              <input type="file" name="image" class="form-control rounded-2" accept="image/*" onchange="previewImage(event, '<%= isAdd ? 'addImagePreview' : 'editPreview-' + product._id %>')">
-            </div>
-
-            <div class="text-center">
-              <% if(!isAdd && product?.image?.data){ %>
-                <img id="editPreview-<%= product._id %>" src="data:<%= product.image.contentType %>;base64,<%= product.image.data.toString('base64') %>" class="img-fluid rounded-3 border mt-2" style="max-height:150px; object-fit:cover;">
-              <% } else if(isAdd){ %>
-                <img id="addImagePreview" class="img-fluid rounded-3 border mt-2" style="max-height:150px; display:none; object-fit:cover;">
-              <% } %>
-            </div>
-
-          </div>
-
-          <div class="modal-footer d-flex justify-content-between px-4 py-3 bg-light border-top rounded-bottom-3">
-            <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
-              <i class="fa fa-times me-2"></i> Cancel
-            </button>
-            <button type="submit" class="btn <%= isAdd ? 'btn-secondary' : 'btn-primary' %> px-4">
-              <i class="fa fa-save me-2"></i> <%= isAdd ? 'Save Product' : 'Save Changes' %>
-            </button>
-          </div>
-        </form>
-      <% } %>
+      </form>
     </div>
   </div>
 </div>
@@ -155,16 +102,15 @@
     output.style.display = "block";
   }
 
-
- $(document).ready(function() {
-    $('#productCategory').select2({
+  $(document).ready(function() {
+    $('select.select2').select2({
       theme: 'bootstrap-5',
       width: '100%',
       templateResult: function(state) {
         if (!state.id) return state.text; // placeholder
-        const isParent = state.element.dataset.parent === "true";
-        if (isParent) {
-          return $('<span style="font-weight:bold; color:#333;">' + state.text + '</span>');
+        const element = state.element;
+        if (element.disabled) {
+          return $('<span style="font-weight:bold; color:#007bff;">' + state.text + '</span>');
         }
         return $('<span>' + state.text + '</span>');
       },
