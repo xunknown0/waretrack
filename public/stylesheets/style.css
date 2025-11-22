@@ -11535,3 +11535,29 @@ body {
   opacity: 0;
   pointer-events: none; /* prevent interaction while fading */
 }
+
+
+
+  /* Gradient backgrounds */
+  .bg-gradient-primary { background: linear-gradient(135deg, #4e73df, #224abe); }
+  .bg-gradient-success { background: linear-gradient(135deg, #1cc88a, #17a673); }
+  .bg-gradient-warning { background: linear-gradient(135deg, #f6c23e, #dda20a); }
+  .bg-gradient-info    { background: linear-gradient(135deg, #36b9cc, #2c9faf); }
+
+  /* Hover effect */
+  .card-hover {
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+  }
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  }
+
+  /* Icon circle */
+  .icon-circle {
+    transition: transform 0.3s;
+  }
+  .card-hover:hover .icon-circle {
+    transform: scale(1.1);
+  }

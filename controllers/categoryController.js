@@ -47,10 +47,10 @@ async categoryDisplay(req, res, next) {
       await Category.create({ name, parent });
 
       req.flash("success", `Category "${name}" added successfully.`);
-      res.redirect("/categories"); // reload the same page
+      res.redirect("/categories"); 
     } catch (err) {
       console.error("Category creation error:", err);
-      req.flash("error", "Failed to add category. Make sure parent is valid.");
+      req.flash("error", "Oops! Parent or child category invalid.");
       res.redirect("/categories");
     }
   },

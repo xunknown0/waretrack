@@ -25,8 +25,8 @@ async productDisplay(req, res, next) {
       else if (keyword === "available") query.stock = { $gt: 0 };
       else
         query.$or = [
-          { title: { $regex: search, $options: "i" } },
-          { description: { $regex: search, $options: "i" } },
+        { sku: { $regex: search, $options: "i" } },
+    { title: { $regex: search, $options: "i" } },
         ];
     }
 
@@ -101,155 +101,177 @@ async productDisplay(req, res, next) {
 },
 
   // Create product with strong duplication check
-  async productCreate(req, res, next) {
-    try {
-      let { title, stock, price, description, category } = req.body;
+async productCreate(req, res, next) {
+  try {
+    let { title, stock, price, description, category } = req.body;
 
-      // Normalize inputs
-      title = title.trim().replace(/\s+/g, " ").toLowerCase();
-      title = title.charAt(0).toUpperCase() + title.slice(1); // Capitalize first letter
-      description = description.trim().replace(/\s+/g, " ");
-      price = parseFloat(price);
-      stock = parseInt(stock) || 0;
+    // Normalize inputs
+    title = title.trim().replace(/\s+/g, " ");
+    title = title.charAt(0).toUpperCase() + title.slice(1); // Capitalize first letter
+    description = description.trim().replace(/\s+/g, " ");
+    price = parseFloat(price);
+    stock = parseInt(stock) || 0;
 
-   if (isNaN(price) || price < 0) {
-  req.flash('error', 'Invalid price');
-  return res.redirect('/products'); // redirect back to the product form/page
-}
+    // Validate price & stock
+    if (isNaN(price) || price < 0) {
+      req.flash('error', 'Invalid price');
+      return res.redirect('/products');
+    }
+    if (isNaN(stock) || stock < 0) {
+      req.flash('error', 'Invalid stock');
+      return res.redirect('/products');
+    }
 
-if (isNaN(stock) || stock < 0) {
-  req.flash('error', 'Invalid stock');
-  return res.redirect('/products');
-}
+    // Restrict forbidden characters in title
+    const forbiddenChars = /["'<>;]/;
+    if (forbiddenChars.test(title)) {
+      req.flash('error', 'Product title cannot contain special characters: ", \', <, >, ;.');
+      return res.redirect('/products');
+    }
 
-      let image = null;
-      let imageHash = null;
+    // Handle image upload
+    let image = null;
+    let imageHash = null;
+    if (req.file) {
+      const imagePath = path.join(
+        __dirname,
+        "../public/uploads/" + req.file.filename
+      );
+      const imageBuffer = fs.readFileSync(imagePath);
 
-      if (req.file) {
-        const imagePath = path.join(
-          __dirname,
-          "../public/uploads/" + req.file.filename
-        );
-        const imageBuffer = fs.readFileSync(imagePath);
+      imageHash = crypto.createHash("md5").update(imageBuffer).digest("hex");
 
-        imageHash = crypto.createHash("md5").update(imageBuffer).digest("hex");
+      image = {
+        data: imageBuffer,
+        contentType: req.file.mimetype,
+      };
+    }
 
-        image = {
-          data: imageBuffer,
-          contentType: req.file.mimetype,
-        };
-      }
+    // Strong duplication check
+    const existingProduct = await Product.findOne({
+      title: { $regex: `^${title}$`, $options: "i" },
+      price,
+      description,
+      ...(imageHash ? { imageHash } : {}),
+    });
 
-      // Strong duplication check
-      const existingProduct = await Product.findOne({
-        title: { $regex: `^${title}$`, $options: "i" },
-        price,
-        description,
-        ...(imageHash ? { imageHash } : {}),
-      });
+    if (existingProduct) {
+      req.flash('error', 'Product already exists.');
+      return res.redirect('/products');
+    }
 
-      if (existingProduct) {
-        req.flash('error', 'Product already exists.');
-        return res.redirect('/products');
-      }
+    
+    // Create product
+    const product = new Product({
+      title,
+      stock,
+      price,
+      description,
+      category: category || null,
+      image,
+      imageHash,
+    });
 
-      const product = new Product({
+    await product.save();
+    req.flash('success', 'Product Added Successfully!');
+    res.redirect("/products");
+
+  } catch (err) {
+    next(err);
+  }
+},
+
+
+  // Update product with same duplication prevention
+ async productUpdate(req, res, next) {
+  try {
+    const { id } = req.params;
+    let { title, stock, price, description, category } = req.body;
+
+    // Normalize inputs
+    title = title.trim().replace(/\s+/g, " ");
+    title = title.charAt(0).toUpperCase() + title.slice(1); // Capitalize first letter
+    description = description.trim().replace(/\s+/g, " ");
+    price = parseFloat(price);
+    stock = parseInt(stock) || 0;
+
+    // Validate price & stock
+    if (isNaN(price) || price < 0) {
+      req.flash('error', 'Invalid price');
+      return res.redirect('/products');
+    }
+    if (isNaN(stock) || stock < 0) {
+      req.flash('error', 'Invalid stock');
+      return res.redirect('/products');
+    }
+
+    // Restrict forbidden characters
+    const forbiddenChars = /["'<>;]/;
+    if (forbiddenChars.test(title)) {
+      req.flash('error', 'Product title cannot contain special characters: ", \', <, >, ;.');
+      return res.redirect('/products');
+    }
+
+    // Restrict specific titles
+    if (title.toLowerCase() === "usb-c cable") {
+      req.flash('error', "Updating to 'USB-C Cable' is not allowed.");
+      return res.redirect('/products');
+    }
+
+    // Handle image upload if exists
+    let image = null;
+    let imageHash = null;
+    if (req.file) {
+      const imagePath = path.join(
+        __dirname,
+        "../public/uploads/" + req.file.filename
+      );
+      const imageBuffer = fs.readFileSync(imagePath);
+
+      imageHash = crypto.createHash("md5").update(imageBuffer).digest("hex");
+
+      image = {
+        data: imageBuffer,
+        contentType: req.file.mimetype,
+      };
+    }
+
+    // Strong duplication check (excluding the current product)
+    const existingProduct = await Product.findOne({
+      _id: { $ne: id },
+      title: { $regex: `^${title}$`, $options: "i" },
+      price,
+      description,
+      ...(imageHash ? { imageHash } : {}),
+    });
+
+    if (existingProduct) {
+      req.flash('error', 'Another product with same details already exists.');
+      return res.redirect('/products');
+    }
+
+    // Update the product
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      {
         title,
         stock,
         price,
         description,
-        category: category || null, // Assign category if provided
-        image,
-        imageHash,
-      });
+        category: category || null,
+        ...(image ? { image, imageHash } : {}),
+      },
+      { new: true }
+    );
 
-      await product.save();
-      req.flash('success', 'Product Added Successfully!');
-      res.redirect("/products");
-    } catch (err) {
-      next(err);
-    }
-  },
+    req.flash('success', 'Product Updated Successfully!');
+    res.redirect('/products');
 
-  // Update product with same duplication prevention
-  async productUpdate(req, res, next) {
-    try {
-      const { title, category, stock, price, description } = req.body;
-      const productId = req.params.id;
+  } catch (err) {
+    next(err);
+  }
+},
 
-      if (!mongoose.Types.ObjectId.isValid(productId)) {
-        return res.status(400).send("Invalid product ID");
-      }
-
-      // Normalize inputs
-      let normalizedTitle = title.trim().replace(/\s+/g, " ").toLowerCase();
-      normalizedTitle =
-        normalizedTitle.charAt(0).toUpperCase() + normalizedTitle.slice(1);
-      const normalizedDescription = description.trim().replace(/\s+/g, " ");
-      const numericPrice = parseFloat(price);
-      const numericStock = parseInt(stock) || 0;
-
-        if (isNaN(numericPrice) || numericPrice < 0) {
-          req.flash('error', 'Invalid price');
-          return res.redirect('/products'); // redirect back to your product form/page
-        }
-
-        if (isNaN(numericStock) || numericStock < 0) {
-          req.flash('error', 'Invalid stock');
-          return res.redirect('/products');
-        }
-
-      // Build update object
-      let updateData = {
-        title: normalizedTitle,
-        stock: numericStock,
-        price: numericPrice,
-        description: normalizedDescription,
-      };
-
-      if (category) updateData.category = category;
-
-      // Handle image if uploaded
-      let imageHash = null;
-      if (req.file) {
-        const imagePath = path.join(
-          __dirname,
-          "../public/uploads/" + req.file.filename
-        );
-        const imageBuffer = fs.readFileSync(imagePath);
-        imageHash = crypto.createHash("md5").update(imageBuffer).digest("hex");
-
-        updateData.image = {
-          data: imageBuffer,
-          contentType: req.file.mimetype,
-        };
-        updateData.imageHash = imageHash;
-      }
-
-      // Duplication check excluding current product
-      const existingProduct = await Product.findOne({
-        _id: { $ne: productId },
-        title: { $regex: `^${normalizedTitle}$`, $options: "i" },
-        price: numericPrice,
-        description: normalizedDescription,
-        ...(imageHash ? { imageHash } : {}),
-      });
-            if (existingProduct) {
-              req.flash(
-                'error',
-                ' Product Already Exists.'
-              );
-              return res.redirect('/products'); // redirect back to your product list/form page
-            }
-
-        await Product.findByIdAndUpdate(productId, updateData, { new: true });
-        req.flash('success', 'Product Updated Successfully!');
-        res.redirect("/products");
-
-    } catch (err) {
-      next(err);
-    }
-  },
 
   // Delete product
   async productDelete(req, res, next) {

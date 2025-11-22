@@ -13,10 +13,12 @@ router.get('/', async (req, res, next) => {
     const totalStockAgg = await Product.aggregate([{ $group: { _id: null, total: { $sum: "$stock" } } }]);
     const totalStock = totalStockAgg[0]?.total || 0;
 
+    // Fetch products with category populated
     const products = await Product.find()
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ title: 1 });
+      .sort({ title: 1 })
+      .populate('category'); // <-- important
 
     const totalPages = Math.ceil(totalProducts / limit);
 
