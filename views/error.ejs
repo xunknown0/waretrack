@@ -1,3 +1,9 @@
-<h1><%= message %></h1>
-<h2><%= error.status %></h2>
-<pre><%= error.stack %></pre>
+<% layout('layouts/boilerplate') -%>
+<div class="container-fluid py-5 text-center">
+  <h1 class="display-1 text-danger">Oops!</h1>
+  <h3 class="mb-3"><%= message %></h3>
+  <% if (error && Object.keys(error).length > 0) { %>
+    <pre class="bg-light p-3 rounded text-start" style="overflow-x:auto;"><%= error.stack %></pre>
+  <% } %>
+  <a href="/" class="btn btn-primary mt-3">Go Back to Dashboard</a>
+</div>
