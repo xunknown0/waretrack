@@ -38,27 +38,29 @@ app.use(methodOverride('_method'));
 app.use(session({
   secret: "YourSecretKey",
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
 }));
 
 app.use(flash());
-
-// Connect flash and make messages available in all views
 
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success') || [];
   res.locals.error_msg = req.flash('error') || [];
   res.locals.warning_msg = req.flash('warning') || [];
   res.locals.info_msg = req.flash('info') || [];
-  res.locals.currentUserRole = req.session.userRole || null; 
-  res.locals.currentPath = req.path; // current route path for sidebar highlighting  // needed for sidebar
+  res.locals.currentUserRole = req.session?.userRole || null;
+  res.locals.currentPath = req.path;
+  res.locals.query = req.query; // important if you want to use query.logout
+
   next();
 });
 
-// Routes
+// Protected routes
 app.use('/dashboard', dashboardRoutes);
 app.use('/products', productRoutes);
 app.use('/categories', categoriesRoutes);
+
+// Public routes (login, logout, register)
 app.use('/user', usersRoutes);
 
 // 404 page
