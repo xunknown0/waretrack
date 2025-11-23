@@ -45,18 +45,18 @@ app.use(flash());
 
 // Connect flash and make messages available in all views
 
-
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success') || [];
   res.locals.error_msg = req.flash('error') || [];
   res.locals.warning_msg = req.flash('warning') || [];
   res.locals.info_msg = req.flash('info') || [];
-  res.locals.currentUser = req.session.userId || null;
+  res.locals.currentUserRole = req.session.userRole || null; 
+  res.locals.currentPath = req.path; // current route path for sidebar highlighting  // needed for sidebar
   next();
 });
 
 // Routes
-app.use('/', dashboardRoutes);
+app.use('/dashboard', dashboardRoutes);
 app.use('/products', productRoutes);
 app.use('/categories', categoriesRoutes);
 app.use('/user', usersRoutes);

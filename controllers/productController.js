@@ -123,9 +123,9 @@ async productCreate(req, res, next) {
     }
 
     // Restrict forbidden characters in title
-    const forbiddenChars = /["'<>;]/;
+    const forbiddenChars = /["'<>;:]/;
     if (forbiddenChars.test(title)) {
-      req.flash('error', 'Product title cannot contain special characters: ", \', <, >, ;.');
+      req.flash('error', 'Product title cannot contain special characters: ", \', <, >, ;,:');
       return res.redirect('/products');
     }
 
@@ -206,11 +206,12 @@ async productCreate(req, res, next) {
     }
 
     // Restrict forbidden characters
-    const forbiddenChars = /["'<>;]/;
+    const forbiddenChars = /["'<>;:]/;
     if (forbiddenChars.test(title)) {
-      req.flash('error', 'Product title cannot contain special characters: ", \', <, >, ;.');
+      req.flash('error', 'Product title cannot contain special characters: ", \', <, >, ;,:');
       return res.redirect('/products');
     }
+
 
     // Restrict specific titles
     if (title.toLowerCase() === "usb-c cable") {

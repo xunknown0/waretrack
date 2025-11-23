@@ -1,69 +1,67 @@
+<% 
+// Menu definition
+const menu = [
+  { title: 'Dashboard', icon: 'fa fa-dashboard', link: '/dashboard' },
+  { 
+    title: 'Inventory', icon: 'fa-solid fa-box', children: [
+      { title: 'Products', icon: 'fa-solid fa-bag-shopping', link: '/products' },
+      { title: 'Categories', icon: 'fa-solid fa-tags', link: '/categories' }
+    ]
+  },
+  { 
+    title: 'Users', icon: 'fa-solid fa-user-gear', children: [
+      { title: 'Create User', icon: 'fa-solid fa-user-plus', link: '/user/users/create', roles: ['superadmin', 'admin'] },
+      { title: 'Register Superadmin', icon: 'fa-solid fa-user-shield', link: '/user/superadmin/register', roles: ['superadmin'] },
+      { title: 'List Users', icon: 'fa-solid fa-users', link: '/user/users', roles: ['superadmin', 'admin'] }
+    ]
+  },
+  { 
+    title: 'Orders', icon: 'fas fa-shopping-cart', children: [
+      { title: 'Pending', icon: 'fa-solid fa-hourglass-half', link: '#' },
+      { title: 'Completed', icon: 'fa-solid fa-circle-check', link: '#' }
+    ]
+  }
+];
+%>
+
 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
   <div class="sb-sidenav-menu">
     <div class="nav">
 
-      <% 
-      const menu = [
-        { title: 'Dashboard', icon: 'fa fa-dashboard', link: '/' },
-        { 
-          title: 'Inventory', icon: 'fa-solid fa-box', children: [
-            { title: 'Products', icon: 'fa-solid fa-bag-shopping', link: '/products' },
-            { title: 'Categories', icon: 'fa-solid fa-tags', link: '/categories' }
-          ]
-        },
-        { 
-          title: 'Orders', icon: 'fas fa-shopping-cart', children: [
-            { title: 'Pending', icon: 'fa-solid fa-hourglass-half', link: '#' },
-            { title: 'Completed', icon: 'fa-solid fa-circle-check', link: '#' }
-          ]
-        },
-        { 
-          title: 'Sales', icon: 'fas fa-money-bill', children: [
-            { title: 'Revenue', icon: 'fa-solid fa-chart-line', link: '#' },
-            { title: 'Refunds', icon: 'fa-solid fa-rotate-left', link: '#' }
-          ]
-        },
-        { 
-          title: 'Customers', icon: 'fa fa-users', children: [
-            { title: 'New', icon: 'fa-solid fa-user-plus', link: '#' },
-            { title: 'Repeat', icon: 'fa-solid fa-user-pen', link: '#' }
-          ]
-        },
-        { 
-          title: 'Reports', icon: 'far fa-chart-bar', children: [
-            { title: 'Sales', icon: 'fa-solid fa-chart-simple', link: '#' },
-            { title: 'Inventory', icon: 'fa-solid fa-boxes-stacked', link: '#' }
-          ]
-        },
-        { 
-          title: 'Settings', icon: 'fas fa-cog', children: [
-            { title: 'Store', icon: 'fa-solid fa-shop', link: '#' },
-            { title: 'User', icon: 'fa-solid fa-user-gear', link: '#' }
-          ]
-        }
-      ];
+      <% menu.forEach((item, index) => { 
+           // Filter children based on role and restrictions
+           let visibleChildren = [];
+           if (item.children) {
+             visibleChildren = item.children.filter(child => {
+               const hasRoleAccess = !child.roles || child.roles.includes(currentUserRole);
+               const isCategoriesRestricted = child.title === 'Categories' && currentUserRole === 'staff';
+               return hasRoleAccess && !isCategoriesRestricted;
+             });
+           }
       %>
 
-      <% menu.forEach((item, index) => { %>
-        <% if(item.children){ %>
-          <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapse<%= index %>" aria-expanded="false">
+        <% if(item.children && visibleChildren.length > 0) { %>
+          <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapse<%= index %>" aria-expanded="<%= visibleChildren.some(c => c.link === currentPath) ? 'true' : 'false' %>">
             <div class="sb-nav-link-icon"><i class="<%= item.icon %>"></i></div>
             <%= item.title %>
             <div class="sb-sidenav-collapse-arrow"><i class="fas fa-caret-down"></i></div>
           </a>
-          <div class="collapse" id="collapse<%= index %>" data-bs-parent="#sidenavAccordion">
+          <div class="collapse <%= visibleChildren.some(c => c.link === currentPath) ? 'show' : '' %>" id="collapse<%= index %>" data-bs-parent="#sidenavAccordion">
             <nav class="sb-sidenav-menu-nested nav">
-              <% item.children.forEach(child => { %>
-                <a class="nav-link" href="<%= child.link %>"><i class="<%= child.icon %> me-2"></i><%= child.title %></a>
+              <% visibleChildren.forEach(child => { %>
+                <a class="nav-link <%= child.link === currentPath ? 'active' : '' %>" href="<%= child.link %>">
+                  <i class="<%= child.icon %> me-2"></i><%= child.title %>
+                </a>
               <% }) %>
             </nav>
           </div>
-        <% } else { %>
-          <a class="nav-link" href="<%= item.link %>">
+        <% } else if (!item.children) { %>
+          <a class="nav-link <%= item.link === currentPath ? 'active' : '' %>" href="<%= item.link %>">
             <div class="sb-nav-link-icon"><i class="<%= item.icon %>"></i></div>
             <%= item.title %>
           </a>
         <% } %>
+
       <% }) %>
 
     </div>

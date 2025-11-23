@@ -2,13 +2,12 @@
     <h2 class="fw-bold mb-4">Dashboard</h2>
 <div class="row g-4 mb-5">
 
-  <% const stats = [
-    { title: 'Total Products', value: totalProducts, icon: 'fas fa-boxes', bg: 'bg-gradient-primary', text: 'text-white', footer: { text: 'View Inventory', link: '/products' } },
-    { title: 'Total Sales', value: 0, icon: 'fas fa-hand-holding-usd', bg: 'bg-gradient-success', text: 'text-white' },
-    { title: 'Total Stock', value: totalStock, icon: 'fas fa-warehouse', bg: 'bg-gradient-warning', text: 'text-dark' },
-    { title: 'Total Users', value: '', icon: 'fas fa-users', bg: 'bg-gradient-info', text: 'text-white' }
-  ] %>
-
+<% const stats = [
+  { title: 'Total Products', value: totalProducts, icon: 'fas fa-boxes', bg: 'bg-gradient-primary', text: 'text-white', footer: { text: 'View Inventory', link: '/products' } },
+  { title: 'Total Sales', value: totalSales, icon: 'fas fa-hand-holding-usd', bg: 'bg-gradient-success', text: 'text-white' },
+  { title: 'Total Stock', value: totalStock, icon: 'fas fa-warehouse', bg: 'bg-gradient-warning', text: 'text-dark' },
+  { title: 'Total Users', value: totalUsers, icon: 'fas fa-users', bg: 'bg-gradient-info', text: 'text-white', footer: { text: 'View Users', link: '/user/users' } }
+] %>
   <% stats.forEach(stat => { %>
     <div class="col-md-6 col-lg-3">
       <div class="card border-0 shadow-sm overflow-hidden h-100 <%= stat.bg %> <%= stat.text %> card-hover">
